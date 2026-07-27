@@ -32,6 +32,12 @@ class Post(models.Model):
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    def reading_time(self):
+        words = len(self.content.split())
+        minutes = words // 200
+        if minutes < 1:
+            minutes = 1
+        return minutes
 
     def __str__(self):
         return self.title
@@ -52,19 +58,6 @@ class Comment(models.Model):
         return f"{self.user.username} - {self.post.title}"
 
 class Profile(models.Model):
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE
-    )
-
-    profile_image = models.ImageField(
-        upload_to='profiles/',
-        default='profiles/default.png'
-    )
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="profiles/", default="profiles/default.png")
     bio = models.TextField(blank=True)
-
-    website = models.URLField(blank=True)
-
-    def __str__(self):
-        return self.user.username

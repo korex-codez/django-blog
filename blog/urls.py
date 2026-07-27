@@ -18,6 +18,12 @@ urlpatterns = [
     path("post/<int:id>/bookmark/",views.bookmark_post,name="bookmark_post"),
     path("about/", views.about, name="about"),
     path("contact/", views.contact, name="contact"),
+    path("post/<int:pk>/like/",views.like_post,name="like_post"),
+    path(
+    "profile/edit/",
+    views.profile_edit,
+    name="profile_edit"
+),
 ]
 
 if settings.DEBUG:

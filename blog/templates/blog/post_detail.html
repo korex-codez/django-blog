@@ -2,24 +2,78 @@
 
 <h1>{{ post.title }}</h1>
 
-<p>By {{ post.author }}</p>
+<div class="share-buttons">
+  <a
+    class="btn btn-primary"
+    href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+  >
+    Facebook
+  </a>
+
+  <a
+    class="btn btn-dark"
+    href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}"
+  >
+    Twitter
+  </a>
+
+  <a
+    class="btn btn-success"
+    href="https://wa.me/?text={{ request.build_absolute_uri }}"
+  >
+    WhatsApp
+  </a>
+</div>
+
+<div class="post-meta">
+  <span> 👤 {{ post.author }} </span>
+
+  <span> ⏱ {{ post.reading_time }} min read </span>
+
+  <span> 📅 {{ post.created_at|date:"M d, Y" }} </span>
+</div>
 
 <hr />
 
 <p>{{ post.content }}</p>
 
+<div class="author-card">
+  <h4>✍️ About Author</h4>
+
+  <h5>{{ post.author.username }}</h5>
+
+  <p>Sharing knowledge and experiences through blogs.</p>
+
+  <a href="{% url 'profile' %}" class="btn premium-btn"> View Profile </a>
+</div>
+
+<h3 class="mt-5">📚 Related Posts</h3>
+
+<div class="row">
+  {% for item in related_posts %}
+
+  <div class="col-md-4">
+    <div class="card blog-card">
+      <div class="card-body">
+        <h5>{{ item.title }}</h5>
+
+        <a href="{% url 'post_detail' item.id %}" class="btn premium-btn">
+          Read
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% endfor %}
+</div>
+
 <!-- Like & Bookmark -->
 {% if user.is_authenticated %}
 
-<form action="{% url 'like_post' post.id %}" method="POST">
-  {% csrf_token %}
-
-  <button class="btn btn-outline-danger">
-    {% if user in post.likes.all %} ❤️ Unlike {% else %} 🤍 Like {% endif %}
-  </button>
-
-  <span class="ms-2"> {{ post.likes.count }} Likes </span>
-</form>
+<button id="likeBtn" data-id="{{ post.id }}" class="btn premium-btn">
+  ❤️ Like
+  <span id="likeCount"> {{ post.likes.count }} </span>
+</button>
 
 <br />
 

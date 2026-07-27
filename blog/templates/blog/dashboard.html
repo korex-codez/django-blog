@@ -1,64 +1,175 @@
-{% extends 'blog/base.html' %}
+{% extends "blog/base.html" %}
+
+
+{% block title %}
+Dashboard
+{% endblock %}
+
 
 {% block content %}
 
-<h2>My Dashboard</h2>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h4>Welcome, {{ user.username }}</h4>
-        <p>Total Posts: <strong>{{ total_posts }}</strong></p>
+<h1 class="mb-4">
+👋 Welcome, {{ user.username }}
+</h1>
 
-        <a href="{% url 'create_post' %}" class="btn btn-success">
-            + New Post
-        </a>
-    </div>
+
+
+<div class="row">
+
+
+<div class="col-md-4 mb-4">
+
+<div class="dashboard-card">
+
+<h2>
+{{ total_posts }}
+</h2>
+
+<p>
+📝 Total Posts
+</p>
+
 </div>
 
-{% if posts %}
-
-<table class="table table-bordered table-hover">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Created</th>
-            <th>Likes</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-    {% for post in posts %}
-
-        <tr>
-            <td>{{ post.title }}</td>
-            <td>{{ post.category }}</td>
-            <td>{{ post.created_at|date:"d M Y" }}</td>
-            <td>{{ post.likes.count }}</td>
-            <td>
-                <a href="{% url 'edit_post' post.id %}" class="btn btn-warning btn-sm">
-                    Edit
-                </a>
-
-                <a href="{% url 'delete_post' post.id %}" class="btn btn-danger btn-sm">
-                    Delete
-                </a>
-            </td>
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-</table>
-
-{% else %}
-
-<div class="alert alert-info">
-    You haven't created any posts yet.
 </div>
 
-{% endif %}
+
+
+<div class="col-md-4 mb-4">
+
+<div class="dashboard-card">
+
+<h2>
+{{ total_likes }}
+</h2>
+
+<p>
+❤️ Total Likes
+</p>
+
+</div>
+
+</div>
+
+
+
+
+<div class="col-md-4 mb-4">
+
+<div class="dashboard-card">
+
+<h2>
+{{ total_views }}
+</h2>
+
+<p>
+👁 Total Views
+</p>
+
+</div>
+
+</div>
+
+
+
+</div>
+
+
+
+
+<div class="d-flex gap-3 mb-4">
+
+<a href="{% url 'create_post' %}"
+class="btn premium-btn">
+
+➕ Create Post
+
+</a>
+
+
+<a href="{% url 'profile' %}"
+class="btn btn-outline-primary">
+
+👤 Profile
+
+</a>
+
+
+</div>
+
+
+
+
+
+<h3 class="mb-3">
+
+Recent Posts
+
+</h3>
+
+
+
+<div class="row">
+
+
+{% for post in recent_posts %}
+
+
+<div class="col-md-6 mb-3">
+
+
+<div class="card blog-card">
+
+
+<div class="card-body">
+
+
+<h5>
+
+{{ post.title }}
+
+</h5>
+
+
+<p>
+
+{{ post.content|truncatewords:15 }}
+
+</p>
+
+
+<a href="{% url 'post_detail' post.id %}"
+class="btn premium-btn">
+
+View
+
+</a>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+{% empty %}
+
+
+<p>
+No posts created yet.
+</p>
+
+
+{% endfor %}
+
+
+
+</div>
+
+
 
 {% endblock %}

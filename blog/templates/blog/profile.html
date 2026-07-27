@@ -1,31 +1,156 @@
-{% extends 'blog/base.html' %} {% block content %}
+{% extends "blog/base.html" %}
 
-<div class="row justify-content-center">
-  <div class="col-md-8">
-    <div class="card shadow">
-      <div class="card-header bg-dark text-white">
-        <h3>My Profile</h3>
-      </div>
 
-      <div class="card-body">
-        <form method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
+{% block title %}
+My Profile
+{% endblock %}
 
-          <h5>User Information</h5>
 
-          {{ user_form.as_p }}
 
-          <hr />
+{% block content %}
 
-          <h5>Profile Details</h5>
 
-          {{ profile_form.as_p }}
+<div class="container">
 
-          <button class="btn btn-primary mt-3">Update Profile</button>
-        </form>
-      </div>
-    </div>
-  </div>
+
+<div class="profile-card">
+
+
+<div class="row align-items-center">
+
+
+<div class="col-md-4 text-center">
+
+
+{% if user.profile.image %}
+<img src="{{ user.profile.image.url }}"
+class="profile-img">
+{% endif %}
+
+
 </div>
 
-{% endblock %}
+
+
+<div class="col-md-8">
+
+
+<h2>
+{{ user.username }}
+</h2>
+
+
+<p class="text-muted">
+
+{{ user.email }}
+
+</p>
+
+
+
+<p>
+
+{{ user.profile.bio|default:"No bio added yet." }}
+
+</p>
+
+
+
+<a href="{% url 'profile_edit' %}"
+class="btn premium-btn">
+
+✏️ Edit Profile
+
+</a>
+
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<h2 class="mt-5">
+
+📝 My Blogs
+
+</h2>
+
+
+
+
+<div class="row">
+
+
+{% for post in posts %}
+
+
+<div class="col-md-4 mb-4">
+
+
+<div class="card blog-card">
+
+
+<div class="card-body">
+
+
+<h5>
+
+{{ post.title }}
+
+</h5>
+
+
+<p>
+
+{{ post.content|truncatewords:15 }}
+
+</p>
+
+
+
+<a href="{% url 'post_detail' post.id %}"
+class="btn premium-btn">
+
+Read
+
+</a>
+
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{% empty %}
+
+
+<p>
+No blogs created yet.
+</p>
+
+
+{% endfor %}
+
+
+</div>
+
+
+</div>
+
+
+
+{% endblock %} 

@@ -1,141 +1,738 @@
-{% extends 'blog/base.html' %} {% block content %}
+{% extends "blog/base.html" %}
+
+{% block title %}
+Home | My Blog
+{% endblock %}
+
+
+{% block content %}
+
+
+<!-- HERO SECTION -->
+
+<section class="hero-section mb-5">
+
+    <div class="hero-overlay">
+
+        <h1>
+            Build. Share. Inspire.
+        </h1>
+
+        <p>
+            Discover amazing stories, tutorials and ideas from developers around the world.
+        </p>
+
+
+        <div class="mt-4">
+
+            <a href="#latest-posts"
+               class="btn btn-lg premium-btn me-3">
+
+                Explore Blogs
+
+            </a>
+
+
+            {% if user.is_authenticated %}
+
+            <a href="{% url 'create_post' %}"
+               class="btn btn-lg btn-outline-light">
+
+                Write a Blog
+
+            </a>
+
+            {% else %}
+
+            <a href="{% url 'register' %}"
+               class="btn btn-lg btn-outline-light">
+
+                Join Now
+
+            </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+
+
+<!-- STATISTICS -->
+
+
+<section class="stats">
+
 
 <div class="row">
-  <!-- Sidebar -->
-  <div class="col-md-3">
-    <div class="card mb-3">
-      <div class="card-header">Search</div>
 
-      <div class="card-body">
-        <form method="GET">
-          <input
-            type="text"
-            name="q"
-            class="form-control mb-2"
-            placeholder="Search..."
-            value="{{ query|default:'' }}"
-          />
 
-          <button class="btn btn-primary w-100">Search</button>
-        </form>
-      </div>
-    </div>
+<div class="col-md-3 mb-3">
 
-    <div class="card mb-3">
-      <div class="card-header">Categories</div>
+<div class="stat-card">
 
-      <div class="list-group list-group-flush">
-        <a href="/" class="list-group-item"> All Categories </a>
+<div class="stat-number">
 
-        {% for category in categories %}
+{{ posts.paginator.count }}
 
-        <a href="?category={{ category.id }}" class="list-group-item">
-          {{ category.name }}
-        </a>
-
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">Recent Posts</div>
-
-      <div class="list-group list-group-flush">
-        {% for post in recent_posts %}
-
-        <a href="{% url 'post_detail' post.id %}" class="list-group-item">
-          {{ post.title }}
-        </a>
-
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Posts -->
-  <div class="col-md-9">
-    <h2 class="mb-4">Latest Posts</h2>
-
-    {% for post in posts %}
-
-    <div class="card mb-4 shadow">
-      {% if post.image %}
-      <img
-        src="{{ post.image.url }}"
-        class="card-img-top"
-        alt="{{ post.title }}"
-      />
-      {% endif %}
-
-      <div class="card-body">
-        <!-- Featured Badge -->
-        {% if post.featured %}
-        <span class="badge bg-danger mb-2"> ⭐ Featured </span>
-        {% endif %}
-
-        <!-- Category -->
-        <span class="badge bg-primary"> {{ post.category }} </span>
-
-        <!-- Title -->
-        <h3 class="mt-2">{{ post.title }}</h3>
-
-        <!-- Author & Date -->
-        <p class="text-muted mb-1">
-          By <strong>{{ post.author }}</strong> | {{ post.created_at|date:"d M
-          Y" }}
-        </p>
-
-        <!-- Views & Likes -->
-        <p class="mb-2">
-          👁 {{ post.views }} &nbsp;&nbsp; ❤️ {{ post.likes.count }}
-        </p>
-
-        <!-- Content -->
-        <p>{{ post.content|truncatewords:30 }}</p>
-
-        <!-- Read More -->
-        <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">
-          Read More
-        </a>
-      </div>
-    </div>
-
-    {% empty %}
-
-    <div class="alert alert-info">No Posts Found</div>
-
-    {% endfor %}
-
-    <!-- Pagination -->
-
-    <nav>
-      <ul class="pagination justify-content-center">
-        {% if posts.has_previous %}
-
-        <li class="page-item">
-          <a class="page-link" href="?page={{ posts.previous_page_number }}">
-            Previous
-          </a>
-        </li>
-
-        {% endif %}
-
-        <li class="page-item active">
-          <span class="page-link"> {{ posts.number }} </span>
-        </li>
-
-        {% if posts.has_next %}
-
-        <li class="page-item">
-          <a class="page-link" href="?page={{ posts.next_page_number }}">
-            Next
-          </a>
-        </li>
-
-        {% endif %}
-      </ul>
-    </nav>
-  </div>
 </div>
+
+<h5>
+Total Posts
+</h5>
+
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-3">
+
+<div class="stat-card">
+
+<div class="stat-number">
+500+
+</div>
+
+<h5>
+Readers
+</h5>
+
+</div>
+
+</div>
+
+
+
+
+<div class="col-md-3 mb-3">
+
+<div class="stat-card">
+
+<div class="stat-number">
+120+
+</div>
+
+<h5>
+Comments
+</h5>
+
+</div>
+
+</div>
+
+
+
+
+<div class="col-md-3 mb-3">
+
+<div class="stat-card">
+
+<div class="stat-number">
+50+
+</div>
+
+<h5>
+Authors
+</h5>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- FEATURED POSTS -->
+
+
+<h2 class="section-title">
+
+🔥 Featured Posts
+
+</h2>
+
+
+<div class="row mb-5">
+
+
+{% for post in featured_posts %}
+
+
+<div class="col-md-4 mb-4">
+
+
+<div class="card blog-card"
+     data-aos="fade-up">
+
+
+
+{% if post.image %}
+
+<img src="{{ post.image.url }}"
+     class="card-img-top"
+     alt="{{ post.title }}">
+
+{% endif %}
+
+
+
+<div class="card-body">
+
+
+<h4>
+{{ post.title }}
+</h4>
+
+
+<p>
+
+{{ post.content|truncatewords:18 }}
+
+</p>
+
+
+
+<a href="{% url 'post_detail' post.id %}"
+   class="btn premium-btn">
+
+Read →
+
+</a>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{% empty %}
+
+
+<div class="col-12">
+
+<div class="alert alert-warning">
+
+No featured posts yet.
+
+</div>
+
+</div>
+
+
+{% endfor %}
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- SEARCH -->
+
+
+<div class="search-box mb-5">
+
+
+<form method="GET">
+
+
+<div class="row g-2">
+
+
+
+<div class="col-md-6">
+
+
+<input
+type="text"
+name="q"
+class="form-control"
+placeholder="Search blogs..."
+value="{{ query|default:'' }}">
+
+
+</div>
+
+
+
+
+
+<div class="col-md-3">
+
+
+<select name="sort"
+class="form-select">
+
+
+<option value="">
+Latest
+</option>
+
+
+<option value="popular">
+Most Viewed
+</option>
+
+
+<option value="likes">
+Most Liked
+</option>
+
+
+</select>
+
+
+</div>
+
+
+
+
+
+<div class="col-md-3">
+
+
+<button class="btn premium-btn w-100">
+
+🔍 Search
+
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+</form>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- MAIN CONTENT -->
+
+
+<div class="row">
+
+
+
+<!-- POSTS -->
+
+
+<div class="col-lg-8">
+
+
+<h2 class="section-title"
+id="latest-posts">
+
+Latest Articles
+
+</h2>
+
+
+
+
+
+<div class="row">
+
+
+
+{% for post in posts %}
+
+
+
+<div class="col-md-6 mb-4">
+
+
+
+<div class="card blog-card"
+data-aos="fade-up">
+
+
+
+{% if post.image %}
+
+<img src="{{ post.image.url }}"
+class="card-img-top">
+
+{% endif %}
+
+
+
+
+<div class="card-body">
+
+
+<h4>
+
+{{ post.title }}
+
+</h4>
+
+
+
+<p class="text-muted">
+
+By {{ post.author }}
+
+</p>
+
+
+
+<p>
+
+{{ post.content|truncatewords:20 }}
+
+</p>
+
+
+
+
+<a href="{% url 'post_detail' post.id %}"
+class="btn premium-btn w-100">
+
+Read More →
+
+</a>
+
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+{% empty %}
+
+
+<div class="alert alert-info">
+
+No posts found.
+
+</div>
+
+
+{% endfor %}
+
+
+
+</div>
+
+
+
+
+
+
+
+<!-- PAGINATION -->
+
+
+<div class="text-center mt-4">
+
+
+{% if posts.has_previous %}
+
+<a class="btn btn-outline-primary"
+href="?page={{ posts.previous_page_number }}">
+
+Previous
+
+</a>
+
+
+{% endif %}
+
+
+
+
+
+<span class="mx-3">
+
+Page {{ posts.number }}
+of {{ posts.paginator.num_pages }}
+
+</span>
+
+
+
+
+
+{% if posts.has_next %}
+
+
+<a class="btn btn-outline-primary"
+href="?page={{ posts.next_page_number }}">
+
+Next
+
+</a>
+
+
+{% endif %}
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- SIDEBAR -->
+
+
+<div class="col-lg-4">
+
+
+<div class="sidebar-widget">
+
+
+
+<h4>
+🔥 Trending
+</h4>
+
+
+
+{% for post in popular_posts %}
+
+
+<p>
+
+<a href="{% url 'post_detail' post.id %}">
+
+{{ post.title }}
+
+</a>
+
+</p>
+
+
+
+{% empty %}
+
+
+<p>
+No trending posts.
+</p>
+
+
+{% endfor %}
+
+
+
+
+
+<hr>
+
+
+
+
+
+<h4>
+❤️ Most Liked
+</h4>
+
+
+
+{% for post in most_liked %}
+
+
+<p>
+
+<a href="{% url 'post_detail' post.id %}">
+
+{{ post.title }}
+
+</a>
+
+</p>
+
+
+
+{% empty %}
+
+
+<p>
+No liked posts yet.
+</p>
+
+
+{% endfor %}
+
+
+
+
+
+<hr>
+
+
+
+
+
+<h4>
+🏷 Categories
+</h4>
+
+
+
+
+{% for category in categories %}
+
+
+<a href="?category={{ category.name }}">
+
+<span class="badge bg-primary m-1">
+
+{{ category.name }}
+
+</span>
+
+</a>
+
+
+{% empty %}
+
+
+<p>
+No categories.
+</p>
+
+
+{% endfor %}
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- BACK TO TOP -->
+
+
+<button id="topBtn">
+
+↑
+
+</button>
+
+
+
+
+<script>
+
+
+const topBtn =
+document.getElementById("topBtn");
+
+
+
+window.onscroll=function(){
+
+
+if(document.documentElement.scrollTop>300)
+
+{
+
+topBtn.style.display="block";
+
+}
+
+else
+
+{
+
+topBtn.style.display="none";
+
+}
+
+
+}
+
+
+
+
+
+topBtn.onclick=function(){
+
+
+window.scrollTo({
+
+top:0,
+
+behavior:"smooth"
+
+});
+
+
+}
+
+
+</script>
+
+
 
 {% endblock %}
