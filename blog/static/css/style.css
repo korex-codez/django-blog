@@ -1,0 +1,24 @@
+body {
+    background: #f8f9fa;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+footer a {
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffc107;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    transition: .3s;
+}
