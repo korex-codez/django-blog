@@ -1,181 +1,329 @@
-{% extends 'blog/base.html' %} {% block content %}
+{% extends "blog/base.html" %}
 
-<h1>{{ post.title }}</h1>
+{% block title %}
+{{ post.title }} | My Blog
+{% endblock %}
 
-<div class="share-buttons">
-  <a
-    class="btn btn-primary"
-    href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
-  >
-    Facebook
-  </a>
 
-  <a
-    class="btn btn-dark"
-    href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}"
-  >
-    Twitter
-  </a>
 
-  <a
-    class="btn btn-success"
-    href="https://wa.me/?text={{ request.build_absolute_uri }}"
-  >
-    WhatsApp
-  </a>
-</div>
+{% block content %}
 
-<div class="post-meta">
-  <span> 👤 {{ post.author }} </span>
+<div class="container mt-5">
 
-  <span> ⏱ {{ post.reading_time }} min read </span>
 
-  <span> 📅 {{ post.created_at|date:"M d, Y" }} </span>
-</div>
+<div class="card blog-detail-card shadow-lg">
 
-<hr />
 
-<p>{{ post.content }}</p>
+{% if post.image %}
 
-<div class="author-card">
-  <h4>✍️ About Author</h4>
-
-  <h5>{{ post.author.username }}</h5>
-
-  <p>Sharing knowledge and experiences through blogs.</p>
-
-  <a href="{% url 'profile' %}" class="btn premium-btn"> View Profile </a>
-</div>
-
-<h3 class="mt-5">📚 Related Posts</h3>
-
-<div class="row">
-  {% for item in related_posts %}
-
-  <div class="col-md-4">
-    <div class="card blog-card">
-      <div class="card-body">
-        <h5>{{ item.title }}</h5>
-
-        <a href="{% url 'post_detail' item.id %}" class="btn premium-btn">
-          Read
-        </a>
-      </div>
-    </div>
-  </div>
-
-  {% endfor %}
-</div>
-
-<!-- Like & Bookmark -->
-{% if user.is_authenticated %}
-
-<button id="likeBtn" data-id="{{ post.id }}" class="btn premium-btn">
-  ❤️ Like
-  <span id="likeCount"> {{ post.likes.count }} </span>
-</button>
-
-<br />
-
-<form action="{% url 'bookmark_post' post.id %}" method="POST">
-  {% csrf_token %}
-
-  <button class="btn btn-warning">
-    {% if user in post.bookmarks.all %} ⭐ Remove Bookmark {% else %} ⭐
-    Bookmark {% endif %}
-  </button>
-</form>
+<img src="{{ post.image.url }}"
+class="img-fluid rounded-top"
+alt="{{ post.title }}">
 
 {% endif %}
 
-<hr />
 
-<!-- Views & Tags -->
-<p><strong>👁 Views:</strong> {{ post.views }}</p>
 
-<p><strong>🏷 Tags:</strong> {{ post.tags }}</p>
+<div class="card-body p-4">
 
-<hr />
 
-<!-- Share Buttons -->
-<h5>Share this Post</h5>
+<h1 class="mb-3">
+{{ post.title }}
+</h1>
 
-<a
-  class="btn btn-success"
-  target="_blank"
-  href="https://wa.me/?text={{ request.build_absolute_uri }}"
->
-  WhatsApp
+
+
+<p class="text-muted">
+
+By
+
+<a href="#">
+
+{{ post.author.username }}
+
 </a>
 
-<a
-  class="btn btn-primary"
-  target="_blank"
-  href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
->
-  Facebook
-</a>
+|
 
-<a
-  class="btn btn-dark"
-  target="_blank"
-  href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}"
->
-  X
-</a>
+{{ post.created_at|date:"M d, Y" }}
 
-<a
-  class="btn btn-info"
-  target="_blank"
-  href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}"
->
-  LinkedIn
-</a>
+</p>
 
-<hr />
 
-<h3>Comments</h3>
+
+
+<div class="mb-3">
+
+
+<span class="badge bg-primary">
+
+{{ post.category }}
+
+</span>
+
+
+<span class="badge bg-dark">
+
+👁 {{ post.views }}
+
+</span>
+
+
+<span class="badge bg-danger">
+
+❤️ {{ post.likes.count }}
+
+</span>
+
+
+</div>
+
+
+
+
+<div class="lead blog-content">
+
+{{ post.content|safe }}
+
+</div>
+
+
+
+
+
+<!-- ACTION BUTTONS -->
+
+
+<div class="mt-4">
+
 
 {% if user.is_authenticated %}
 
-<form method="POST">
-  {% csrf_token %} {{ form.as_p }}
 
-  <button class="btn btn-primary">Add Comment</button>
+<a href="{% url 'like_post' post.id %}"
+class="btn btn-danger">
+
+❤️ Like ({{ post.likes.count }})
+
+</a>
+
+
+
+<a href="{% url 'bookmark_post' post.id %}"
+class="btn btn-outline-primary">
+
+🔖 Bookmark
+
+</a>
+
+
+{% endif %}
+
+
+
+</div>
+
+
+
+<hr class="my-5">
+
+
+
+
+
+<!-- COMMENTS -->
+
+
+<h3>
+
+💬 Comments
+
+</h3>
+
+
+
+
+{% if user.is_authenticated %}
+
+
+<form method="POST">
+
+{% csrf_token %}
+
+
+{{ form.as_p }}
+
+
+<button class="btn premium-btn">
+
+Add Comment
+
+</button>
+
+
 </form>
+
+
 
 {% else %}
 
-<p>Please <a href="{% url 'login' %}">login</a> to comment.</p>
+
+<p>
+
+<a href="{% url 'login' %}">
+Login
+</a>
+to comment.
+
+</p>
+
 
 {% endif %}
 
-<hr />
+
+
+
+
+
+<div class="mt-4">
+
 
 {% for comment in post.comments.all %}
 
+
+
 <div class="card mb-3">
-  <div class="card-body">
-    <strong>{{ comment.user.username }}</strong>
 
-    <small class="text-muted">
-      {{ comment.created_at|date:"d M Y H:i" }}
-    </small>
 
-    <p class="mt-2">{{ comment.content }}</p>
-  </div>
+<div class="card-body">
+
+
+<strong>
+
+{{ comment.user.username }}
+
+</strong>
+
+
+<p>
+
+{{ comment.content }}
+
+</p>
+
+
+<small class="text-muted">
+
+{{ comment.created_at|date:"M d, Y" }}
+
+</small>
+
+
 </div>
+
+
+</div>
+
+
 
 {% empty %}
 
-<p>No comments yet.</p>
 
-{% endfor %} {% if user == post.author %}
+<p>
 
-<hr />
+No comments yet.
 
-<a href="{% url 'edit_post' post.id %}" class="btn btn-warning"> Edit </a>
+</p>
 
-<a href="{% url 'delete_post' post.id %}" class="btn btn-danger"> Delete </a>
 
-{% endif %} {% endblock %}
+{% endfor %}
+
+
+</div>
+
+
+
+
+
+
+<hr class="my-5">
+
+
+
+
+
+<!-- RELATED POSTS -->
+
+
+<h3>
+
+🔥 Related Posts
+
+</h3>
+
+
+
+<div class="row">
+
+
+
+{% for item in related_posts %}
+
+
+<div class="col-md-4">
+
+
+<div class="card blog-card">
+
+
+<div class="card-body">
+
+
+<h5>
+
+{{ item.title }}
+
+</h5>
+
+
+<a href="{% url 'post_detail' item.id %}"
+class="btn btn-sm premium-btn">
+
+Read
+
+</a>
+
+
+</div>
+
+</div>
+
+
+</div>
+
+
+{% empty %}
+
+<p>
+No related posts.
+</p>
+
+
+{% endfor %}
+
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+{% endblock %}

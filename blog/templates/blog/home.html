@@ -12,53 +12,61 @@ Home | My Blog
 
 <section class="hero-section mb-5">
 
-    <div class="hero-overlay">
+<div class="hero-overlay">
 
-        <h1>
-            Build. Share. Inspire.
-        </h1>
-
-        <p>
-            Discover amazing stories, tutorials and ideas from developers around the world.
-        </p>
+<h1>
+Build. Share. Inspire.
+</h1>
 
 
-        <div class="mt-4">
-
-            <a href="#latest-posts"
-               class="btn btn-lg premium-btn me-3">
-
-                Explore Blogs
-
-            </a>
+<p>
+Discover amazing stories, tutorials and ideas from developers around the world.
+</p>
 
 
-            {% if user.is_authenticated %}
+<div class="mt-4">
 
-            <a href="{% url 'create_post' %}"
-               class="btn btn-lg btn-outline-light">
 
-                Write a Blog
+<a href="#latest-posts"
+class="btn btn-lg premium-btn me-3">
 
-            </a>
+Explore Blogs
 
-            {% else %}
+</a>
 
-            <a href="{% url 'register' %}"
-               class="btn btn-lg btn-outline-light">
 
-                Join Now
 
-            </a>
+{% if user.is_authenticated %}
 
-            {% endif %}
+<a href="{% url 'create_post' %}"
+class="btn btn-lg btn-outline-light">
 
-        </div>
+Write a Blog
 
-    </div>
+</a>
+
+
+{% else %}
+
+
+<a href="{% url 'register' %}"
+class="btn btn-lg btn-outline-light">
+
+Join Now
+
+</a>
+
+
+{% endif %}
+
+
+</div>
+
+
+</div>
+
 
 </section>
-
 
 
 
@@ -67,7 +75,6 @@ Home | My Blog
 
 
 <section class="stats">
-
 
 <div class="row">
 
@@ -82,9 +89,7 @@ Home | My Blog
 
 </div>
 
-<h5>
-Total Posts
-</h5>
+<h5>Total Posts</h5>
 
 </div>
 
@@ -100,14 +105,11 @@ Total Posts
 500+
 </div>
 
-<h5>
-Readers
-</h5>
+<h5>Readers</h5>
 
 </div>
 
 </div>
-
 
 
 
@@ -119,14 +121,11 @@ Readers
 120+
 </div>
 
-<h5>
-Comments
-</h5>
+<h5>Comments</h5>
 
 </div>
 
 </div>
-
 
 
 
@@ -138,21 +137,17 @@ Comments
 50+
 </div>
 
-<h5>
-Authors
-</h5>
+<h5>Authors</h5>
 
 </div>
 
 </div>
 
 
-</div>
 
+</div>
 
 </section>
-
-
 
 
 
@@ -177,16 +172,13 @@ Authors
 <div class="col-md-4 mb-4">
 
 
-<div class="card blog-card"
-     data-aos="fade-up">
-
+<div class="card blog-card">
 
 
 {% if post.image %}
 
 <img src="{{ post.image.url }}"
-     class="card-img-top"
-     alt="{{ post.title }}">
+class="card-img-top">
 
 {% endif %}
 
@@ -195,9 +187,25 @@ Authors
 <div class="card-body">
 
 
-<h4>
+<p>
+
+By
+
+<a href="{% url 'author_profile' post.author.username %}">
+
+{{ post.author.username }}
+
+</a>
+
+</p>
+
+
+<h5>
+
 {{ post.title }}
-</h4>
+
+</h5>
+
 
 
 <p>
@@ -207,9 +215,8 @@ Authors
 </p>
 
 
-
 <a href="{% url 'post_detail' post.id %}"
-   class="btn premium-btn">
+class="btn premium-btn">
 
 Read →
 
@@ -225,17 +232,12 @@ Read →
 </div>
 
 
-
 {% empty %}
 
-
-<div class="col-12">
 
 <div class="alert alert-warning">
 
 No featured posts yet.
-
-</div>
 
 </div>
 
@@ -250,10 +252,7 @@ No featured posts yet.
 
 
 
-
-
-
-<!-- SEARCH -->
+<!-- SEARCH SECTION -->
 
 
 <div class="search-box mb-5">
@@ -262,28 +261,70 @@ No featured posts yet.
 <form method="GET">
 
 
-<div class="row g-2">
+<div class="row g-3">
 
 
-
-<div class="col-md-6">
-
+<div class="col-lg-5">
 
 <input
+
 type="text"
+
 name="q"
+
 class="form-control"
-placeholder="Search blogs..."
-value="{{ query|default:'' }}">
+
+placeholder="🔍 Search articles..."
+
+value="{{ query|default:'' }}"
+
+>
+
+</div>
+
+
+
+<div class="col-lg-3">
+
+
+<select name="category"
+class="form-select">
+
+
+<option value="">
+
+All Categories
+
+</option>
+
+
+{% for category in categories %}
+
+
+<option value="{{ category.name }}"
+
+{% if request.GET.category == category.name %}
+selected
+{% endif %}
+
+>
+
+{{ category.name }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
 
 
 </div>
 
 
 
-
-
-<div class="col-md-3">
+<div class="col-lg-2">
 
 
 <select name="sort"
@@ -291,17 +332,23 @@ class="form-select">
 
 
 <option value="">
+
 Latest
+
 </option>
 
 
 <option value="popular">
-Most Viewed
+
+🔥 Most Viewed
+
 </option>
 
 
 <option value="likes">
-Most Liked
+
+❤️ Most Liked
+
 </option>
 
 
@@ -312,14 +359,12 @@ Most Liked
 
 
 
-
-
-<div class="col-md-3">
+<div class="col-lg-2">
 
 
 <button class="btn premium-btn w-100">
 
-🔍 Search
+Search
 
 </button>
 
@@ -342,16 +387,10 @@ Most Liked
 
 
 
-
-
 <!-- MAIN CONTENT -->
 
 
 <div class="row">
-
-
-
-<!-- POSTS -->
 
 
 <div class="col-lg-8">
@@ -367,13 +406,11 @@ Latest Articles
 
 
 
-
 <div class="row">
 
 
 
 {% for post in posts %}
-
 
 
 <div class="col-md-6 mb-4">
@@ -387,11 +424,12 @@ data-aos="fade-up">
 
 {% if post.image %}
 
+
 <img src="{{ post.image.url }}"
 class="card-img-top">
 
-{% endif %}
 
+{% endif %}
 
 
 
@@ -408,7 +446,15 @@ class="card-img-top">
 
 <p class="text-muted">
 
-By {{ post.author }}
+
+By
+
+<a href="{% url 'author_profile' post.author.username %}">
+
+{{ post.author.username }}
+
+</a>
+
 
 </p>
 
@@ -416,17 +462,51 @@ By {{ post.author }}
 
 <p>
 
-{{ post.content|truncatewords:20 }}
+{{ post.content|truncatewords:25 }}
 
 </p>
 
 
 
 
+<!-- POST STATS -->
+
+<div class="mb-3">
+
+
+<span class="badge bg-primary">
+
+🏷 {{ post.category.name }}
+
+</span>
+
+
+
+<span class="badge bg-dark">
+
+👁 {{ post.views }}
+
+</span>
+
+
+
+<span class="badge bg-danger">
+
+❤️ {{ post.likes.count }}
+
+</span>
+
+
+</div>
+
+
+
+
 <a href="{% url 'post_detail' post.id %}"
+
 class="btn premium-btn w-100">
 
-Read More →
+Read Article →
 
 </a>
 
@@ -435,10 +515,12 @@ Read More →
 </div>
 
 
+
 </div>
 
 
 </div>
+
 
 
 
@@ -447,7 +529,7 @@ Read More →
 
 <div class="alert alert-info">
 
-No posts found.
+No articles found.
 
 </div>
 
@@ -463,21 +545,30 @@ No posts found.
 
 
 
-
 <!-- PAGINATION -->
 
 
-<div class="text-center mt-4">
+<nav class="mt-5">
+
+
+<ul class="pagination justify-content-center">
+
 
 
 {% if posts.has_previous %}
 
-<a class="btn btn-outline-primary"
+
+<li class="page-item">
+
+<a class="page-link"
+
 href="?page={{ posts.previous_page_number }}">
 
 Previous
 
 </a>
+
+</li>
 
 
 {% endif %}
@@ -485,13 +576,17 @@ Previous
 
 
 
+<li class="page-item active">
 
-<span class="mx-3">
+
+<span class="page-link">
 
 Page {{ posts.number }}
-of {{ posts.paginator.num_pages }}
 
 </span>
+
+
+</li>
 
 
 
@@ -500,7 +595,11 @@ of {{ posts.paginator.num_pages }}
 {% if posts.has_next %}
 
 
-<a class="btn btn-outline-primary"
+<li class="page-item">
+
+
+<a class="page-link"
+
 href="?page={{ posts.next_page_number }}">
 
 Next
@@ -508,18 +607,21 @@ Next
 </a>
 
 
+</li>
+
+
 {% endif %}
 
 
 
-</div>
+</ul>
+
+
+</nav>
 
 
 
 </div>
-
-
-
 
 
 
@@ -533,7 +635,6 @@ Next
 
 
 <div class="sidebar-widget">
-
 
 
 <h4>
@@ -553,27 +654,21 @@ Next
 
 </a>
 
-</p>
 
+</p>
 
 
 {% empty %}
 
 
-<p>
-No trending posts.
-</p>
+<p>No trending posts.</p>
 
 
 {% endfor %}
 
 
 
-
-
 <hr>
-
-
 
 
 
@@ -594,20 +689,17 @@ No trending posts.
 
 </a>
 
-</p>
 
+</p>
 
 
 {% empty %}
 
 
-<p>
-No liked posts yet.
-</p>
+<p>No liked posts yet.</p>
 
 
 {% endfor %}
-
 
 
 
@@ -616,12 +708,9 @@ No liked posts yet.
 
 
 
-
-
 <h4>
 🏷 Categories
 </h4>
-
 
 
 
@@ -636,33 +725,28 @@ No liked posts yet.
 
 </span>
 
+
 </a>
 
 
 {% empty %}
 
 
-<p>
-No categories.
-</p>
+<p>No categories.</p>
 
 
 {% endfor %}
 
 
 
+</div>
+
 
 </div>
 
 
 
 </div>
-
-
-
-</div>
-
-
 
 
 
@@ -681,56 +765,33 @@ No categories.
 
 
 
-
 <script>
-
-
-const topBtn =
-document.getElementById("topBtn");
-
-
-
-window.onscroll=function(){
-
-
-if(document.documentElement.scrollTop>300)
-
-{
-
-topBtn.style.display="block";
-
-}
-
-else
-
-{
-
-topBtn.style.display="none";
-
-}
-
-
-}
-
-
-
-
-
-topBtn.onclick=function(){
-
-
-window.scrollTo({
-
-top:0,
-
-behavior:"smooth"
-
-});
-
-
-}
-
-
+    // Check if the button exists before using it
+    const topBtn = document.getElementById("topBtn");
+    
+    if (topBtn) {
+        // Initially hide the button
+        topBtn.style.display = "none";
+        
+        // Show/hide on scroll
+        window.onscroll = function() {
+            if (document.documentElement.scrollTop > 300) {
+                topBtn.style.display = "block";
+            } else {
+                topBtn.style.display = "none";
+            }
+        };
+        
+        // Scroll to top on click
+        topBtn.onclick = function() {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        };
+    } else {
+        console.warn("Top button element not found - make sure you have a button with id='topBtn'");
+    }
 </script>
 
 

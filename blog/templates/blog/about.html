@@ -1,15 +1,98 @@
-{% extends 'blog/base.html' %} {% block content %}
+{% extends "blog/base.html" %}
 
-<div class="card shadow">
-  <div class="card-body">
-    <h2>About This Blog</h2>
+{% block title %}
+About | My Blog
+{% endblock %}
 
-    <p>
-      This blogging platform is built using Django and Bootstrap. Users can
-      create posts, upload images, like posts, comment, search, and manage their
-      own dashboard.
-    </p>
-  </div>
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+
+        <h1 class="fw-bold">
+            About My Blog
+        </h1>
+
+        <p class="lead text-muted">
+            A modern blogging platform built with Django.
+        </p>
+
+    </div>
+
+    <div class="row align-items-center">
+
+        <div class="col-lg-6">
+
+            <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=900"
+                 class="img-fluid rounded shadow">
+
+        </div>
+
+        <div class="col-lg-6">
+
+            <h2>Our Mission</h2>
+
+            <p>
+                My Blog is a platform where developers, students,
+                writers, and technology enthusiasts can share their
+                knowledge with the world.
+            </p>
+
+            <p>
+                We believe that learning becomes more powerful when
+                knowledge is shared openly.
+            </p>
+
+            <a href="{% url 'home' %}"
+               class="btn btn-primary">
+
+                Explore Blogs
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row text-center">
+
+        <div class="col-md-3 mb-4">
+
+            <h2>{{ categories.count }}+</h2>
+
+            <p>Categories</p>
+
+        </div>
+
+        <div class="col-md-3 mb-4">
+
+            <h2>500+</h2>
+
+            <p>Readers</p>
+
+        </div>
+
+        <div class="col-md-3 mb-4">
+
+            <h2>100+</h2>
+
+            <p>Articles</p>
+
+        </div>
+
+        <div class="col-md-3 mb-4">
+
+            <h2>24/7</h2>
+
+            <p>Learning</p>
+
+        </div>
+
+    </div>
+
 </div>
 
 {% endblock %}

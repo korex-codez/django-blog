@@ -1,30 +1,144 @@
 from django.urls import path
+
 from . import views
-from django.conf import settings
-from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('post/<int:id>/', views.post_detail, name='post_detail'),
-    path('register/', views.register, name='register'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    path('post/<int:id>/edit/', views.edit_post, name='edit_post'),
-    path('post/<int:id>/delete/', views.delete_post, name='delete_post'),
-    path('post/<int:id>/like/', views.like_post, name='like_post'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('create/', views.create_post, name='create_post'),
-    path('profile/', views.profile, name='profile'),
-    path("post/<int:id>/bookmark/",views.bookmark_post,name="bookmark_post"),
-    path("about/", views.about, name="about"),
-    path("contact/", views.contact, name="contact"),
-    path("post/<int:pk>/like/",views.like_post,name="like_post"),
-    path(
-    "profile/edit/",
-    views.profile_edit,
-    name="profile_edit"
-),
-]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # ==========================================================
+    # HOME
+    # ==========================================================
+
+    path(
+        "",
+        views.home,
+        name="home"
+    ),
+
+    path(
+        "about/",
+        views.about,
+        name="about"
+    ),
+
+    path(
+        "contact/",
+        views.contact,
+        name="contact"
+    ),
+
+
+    # ==========================================================
+    # AUTHENTICATION
+    # ==========================================================
+
+    path(
+        "register/",
+        views.register,
+        name="register"
+    ),
+
+    path(
+        "login/",
+        views.user_login,
+        name="login"
+    ),
+
+    path(
+        "logout/",
+        views.user_logout,
+        name="logout"
+    ),
+
+
+    # ==========================================================
+    # POSTS
+    # ==========================================================
+
+    path(
+        "post/<int:id>/",
+        views.post_detail,
+        name="post_detail"
+    ),
+
+    path(
+        "create/",
+        views.create_post,
+        name="create_post"
+    ),
+
+    path(
+        "edit/<int:id>/",
+        views.edit_post,
+        name="edit_post"
+    ),
+
+    path(
+        "delete/<int:id>/",
+        views.delete_post,
+        name="delete_post"
+    ),
+
+    path(
+        "like/<int:pk>/",
+        views.like_post,
+        name="like_post"
+    ),
+
+    path(
+        "bookmark/<int:id>/",
+        views.bookmark_post,
+        name="bookmark_post"
+    ),
+
+
+    # ==========================================================
+    # PROFILE
+    # ==========================================================
+
+    path(
+        "profile/",
+        views.profile,
+        name="profile"
+    ),
+
+    path(
+        "profile/edit/",
+        views.profile_edit,
+        name="profile_edit"
+    ),
+
+    path(
+        "dashboard/",
+        views.dashboard,
+        name="dashboard"
+    ),
+
+    path(
+        "author/<str:username>/",
+        views.author_profile,
+        name="author_profile"
+    ),
+
+
+    # ==========================================================
+    # NEWSLETTER
+    # ==========================================================
+
+    path(
+        "newsletter/",
+        views.newsletter,
+        name="newsletter"
+    ),
+
+
+    # ==========================================================
+    # CONTACT FORM
+    # ==========================================================
+
+    path(
+        "contact/send/",
+        views.contact_form,
+        name="contact_form"
+    ),
+
+]

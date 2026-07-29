@@ -1,0 +1,111 @@
+{% extends "blog/base.html" %}
+
+{% block title %}
+{{ author.username }} | My Blog
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card shadow-lg p-4 mb-5">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-3 text-center">
+
+                {% if author.profile.image %}
+
+                    <img src="{{ author.profile.image.url }}"
+                         class="rounded-circle img-fluid"
+                         style="width:180px;height:180px;object-fit:cover;">
+
+                {% else %}
+
+                    <img src="https://via.placeholder.com/180"
+                         class="rounded-circle">
+
+                {% endif %}
+
+            </div>
+
+            <div class="col-md-9">
+
+                <h2>{{ author.username }}</h2>
+
+                <p>{{ author.profile.bio }}</p>
+
+                {% if author.profile.website %}
+                    <a href="{{ author.profile.website }}"
+                       target="_blank">
+                        {{ author.profile.website }}
+                    </a>
+                {% endif %}
+
+                <hr>
+
+                <h5>Total Blogs : {{ posts.count }}</h5>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <h3 class="mb-4">
+        Blogs by {{ author.username }}
+    </h3>
+
+    <div class="row">
+
+        {% for post in posts %}
+
+        <div class="col-md-6 mb-4">
+
+            <div class="card h-100 shadow">
+
+                {% if post.image %}
+                <img src="{{ post.image.url }}"
+                     class="card-img-top">
+                {% endif %}
+
+                <div class="card-body">
+
+                    <h4>{{ post.title }}</h4>
+
+                    <p>
+                        {{ post.content|safe|truncatewords:25 }}
+                    </p>
+
+                    <a href="{% url 'post_detail' post.id %}"
+                       class="btn btn-primary">
+
+                        Read More
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+
+        <div class="col-12">
+
+            <div class="alert alert-info">
+
+                This author has not published any blogs yet.
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

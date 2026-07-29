@@ -1,11 +1,39 @@
-{% extends 'blog/base.html' %} {% block content %}
+{% extends "blog/base.html" %}
 
-<div class="text-center mt-5">
-  <h1 class="display-1">500</h1>
+{% block title %}
+500 - Server Error
+{% endblock %}
 
-  <h3>Internal Server Error</h3>
+{% block content %}
 
-  <a href="/" class="btn btn-primary mt-3"> Go Home </a>
+<div class="container py-5 text-center">
+
+    <h1 class="display-1 fw-bold text-warning">
+
+        500
+
+    </h1>
+
+    <h2 class="mb-4">
+
+        Internal Server Error
+
+    </h2>
+
+    <p class="lead text-muted">
+
+        Something went wrong on our side.
+        Please try again in a few moments.
+
+    </p>
+
+    <a href="{% url 'home' %}"
+       class="btn btn-primary mt-3">
+
+        🏠 Go Back Home
+
+    </a>
+
 </div>
 
 {% endblock %}
