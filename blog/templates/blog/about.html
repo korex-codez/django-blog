@@ -1,98 +1,76 @@
 {% extends "blog/base.html" %}
+{% load static %}
 
-{% block title %}
-About | My Blog
-{% endblock %}
+{% block title %}About - MyBlog{% endblock %}
 
 {% block content %}
-
 <div class="container py-5">
-
-    <div class="text-center mb-5">
-
-        <h1 class="fw-bold">
-            About My Blog
-        </h1>
-
-        <p class="lead text-muted">
-            A modern blogging platform built with Django.
-        </p>
-
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold">About MyBlog</h1>
+                <p class="lead text-muted">Sharing knowledge, inspiring minds</p>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h4><i class="fas fa-quote-left text-primary me-2"></i>Our Mission</h4>
+                    <p>
+                        MyBlog was created with a simple mission: to provide high-quality, 
+                        insightful content about technology, programming, and development. 
+                        We believe in the power of sharing knowledge and helping others grow.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-body p-4">
+                    <h4><i class="fas fa-bullseye text-primary me-2"></i>What We Do</h4>
+                    <p>
+                        We publish articles, tutorials, and insights on various topics including:
+                    </p>
+                    <div class="row mt-3">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-code fa-2x text-primary mb-2"></i>
+                                <h6>Programming</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-server fa-2x text-primary mb-2"></i>
+                                <h6>Web Development</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                                <h6>Tech Trends</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h4><i class="fas fa-users text-primary me-2"></i>Join Our Community</h4>
+                    <p>
+                        Whether you're a beginner or an experienced developer, there's a place 
+                        for you here. Subscribe to our newsletter, leave comments, and 
+                        become part of our growing community.
+                    </p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="{% url 'blog:register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Join Now
+                        </a>
+                        <a href="{% url 'blog:contact' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="row align-items-center">
-
-        <div class="col-lg-6">
-
-            <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=900"
-                 class="img-fluid rounded shadow">
-
-        </div>
-
-        <div class="col-lg-6">
-
-            <h2>Our Mission</h2>
-
-            <p>
-                My Blog is a platform where developers, students,
-                writers, and technology enthusiasts can share their
-                knowledge with the world.
-            </p>
-
-            <p>
-                We believe that learning becomes more powerful when
-                knowledge is shared openly.
-            </p>
-
-            <a href="{% url 'home' %}"
-               class="btn btn-primary">
-
-                Explore Blogs
-
-            </a>
-
-        </div>
-
-    </div>
-
-    <hr class="my-5">
-
-    <div class="row text-center">
-
-        <div class="col-md-3 mb-4">
-
-            <h2>{{ categories.count }}+</h2>
-
-            <p>Categories</p>
-
-        </div>
-
-        <div class="col-md-3 mb-4">
-
-            <h2>500+</h2>
-
-            <p>Readers</p>
-
-        </div>
-
-        <div class="col-md-3 mb-4">
-
-            <h2>100+</h2>
-
-            <p>Articles</p>
-
-        </div>
-
-        <div class="col-md-3 mb-4">
-
-            <h2>24/7</h2>
-
-            <p>Learning</p>
-
-        </div>
-
-    </div>
-
 </div>
-
 {% endblock %}

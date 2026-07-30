@@ -1,0 +1,35 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block title %}Access Denied - MyBlog{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="mb-4">
+                <i class="fas fa-lock fa-5x text-danger mb-4"></i>
+                <h1 class="display-1 fw-bold text-danger">403</h1>
+                <h2 class="mb-4">Access Denied</h2>
+                <p class="lead text-muted">
+                    You don't have permission to access this page.
+                </p>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h5><i class="fas fa-question-circle me-2"></i>Need help?</h5>
+                    <div class="d-flex flex-wrap justify-content-center gap-3 mt-3">
+                        <a href="{% url 'blog:home' %}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Go Home
+                        </a>
+                        <a href="{% url 'blog:contact' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-envelope me-2"></i>Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

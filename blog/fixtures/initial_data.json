@@ -1,0 +1,29 @@
+[
+  {
+    "model": "blog.category",
+    "pk": 1,
+    "fields": {
+      "name": "Technology",
+      "slug": "technology",
+      "description": "Latest trends and innovations in technology"
+    }
+  },
+  {
+    "model": "blog.category",
+    "pk": 2,
+    "fields": {
+      "name": "Programming",
+      "slug": "programming",
+      "description": "Programming tutorials and best practices"
+    }
+  },
+  {
+    "model": "blog.category",
+    "pk": 3,
+    "fields": {
+      "name": "Web Development",
+      "slug": "web-development",
+      "description": "Web development tips and techniques"
+    }
+  }
+]
