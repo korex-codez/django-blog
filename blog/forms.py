@@ -4,7 +4,6 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
 
-# Import models
 from .models import Post, Comment, Profile, Contact, Newsletter, Category, Tag
 
 

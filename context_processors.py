@@ -1,4 +1,4 @@
-from .models import Category, Tag
+from .blog.models import Category, Tag
 from django.db.models import Count, Q
 
 def base_context(request):

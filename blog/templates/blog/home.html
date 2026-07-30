@@ -218,13 +218,11 @@
         </h2>
         <div class="text-center">
             {% for tag in tags %}
-            {% with tag_count=tag.post_count %}
             <a href="{% url 'blog:tag_posts' tag.slug %}" 
                class="badge bg-secondary me-2 mb-2 text-decoration-none tag-badge" 
-               data-count="{{ tag_count }}">
+               data-post-count="{{ tag.post_count }}">
                 #{{ tag.name }}
             </a>
-            {% endwith %}
             {% endfor %}
         </div>
     </div>

@@ -6,19 +6,21 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
 from django.contrib.sitemaps import Sitemap
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.views.generic import ListView
 from django.utils import timezone
+from datetime import timedelta
+import json
 
 from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter
 from .forms import (
     PostForm, CommentForm, UserRegisterForm, UserLoginForm,
     ProfileForm, ContactForm, NewsletterForm, EditPostForm
 )
-import json
 
 
 # ==================== CORE VIEWS ====================
@@ -231,7 +233,7 @@ def create_post(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
-            form.save_m2m()  # Save many-to-many fields (tags)
+            form.save_m2m()
             messages.success(request, 'Your post was created successfully!')
             return redirect('blog:post_detail', slug=post.slug)
     else:
@@ -278,14 +280,12 @@ def dashboard(request):
     """User dashboard with statistics"""
     user_posts = Post.objects.filter(author=request.user)
     
-    # Statistics
     total_posts = user_posts.count()
     published_posts = user_posts.filter(status='published').count()
     draft_posts = user_posts.filter(status='draft').count()
     total_views = user_posts.aggregate(total=Count('views'))['total'] or 0
     total_comments = Comment.objects.filter(post__author=request.user).count()
     
-    # Recent posts
     recent_posts = user_posts.order_by('-created_at')[:5]
     
     context = {
@@ -420,7 +420,6 @@ def contact(request):
         if form.is_valid():
             contact = form.save()
             
-            # Send email notification
             subject = f"Contact Form: {contact.subject}"
             message = render_to_string('email/contact_email.html', {
                 'name': contact.name,
@@ -473,7 +472,7 @@ class PostSitemap(Sitemap):
         return obj.updated_at
 
 
-# ==================== API VIEWS (OPTIONAL) ====================
+# ==================== API VIEWS ====================
 
 def search_autocomplete(request):
     """API endpoint for search autocomplete"""
@@ -495,7 +494,7 @@ def comment_vote(request):
     try:
         data = json.loads(request.body)
         comment_id = data.get('comment_id')
-        # Simple implementation - you can expand this
+        # Simple implementation
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
@@ -588,7 +587,6 @@ def save_post_draft(request):
     """API endpoint for saving drafts"""
     try:
         data = json.loads(request.body)
-        # Simple implementation
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
@@ -599,7 +597,6 @@ def get_notifications(request):
     """API endpoint for user notifications"""
     notifications = []
     
-    # Check for new comments on user's posts
     if request.user.is_authenticated:
         recent_comments = Comment.objects.filter(
             post__author=request.user,
