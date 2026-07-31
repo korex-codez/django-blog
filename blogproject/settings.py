@@ -120,9 +120,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login/Logout URLs
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'blog:login'  # ✅ Must include namespace
+LOGIN_REDIRECT_URL = 'blog:home'
+LOGOUT_REDIRECT_URL = 'blog:home'
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -143,15 +143,17 @@ TINYMCE_DEFAULT_CONFIG = {
     'statusbar': True,
 }
 
-# Email Configuration (for development, use console backend)
+# ✅ USE THIS FOR TESTING - No real emails sent
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'webmaster@localhost'
 
+# Comment out the SMTP settings for now
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'xviii.v.mmviii@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-16-character-app-password'
+# DEFAULT_FROM_EMAIL = 'xviii.v.mmviii@gmail.com'
 # Base URL
 BASE_URL = 'http://localhost:8000'
 

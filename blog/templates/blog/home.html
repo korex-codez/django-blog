@@ -127,9 +127,21 @@
                                 </small>
                             </div>
                         </div>
-                        <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
-                            Read More <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
+                        
+                        {# ✅ FIXED: Only show Edit button if user is author or staff #}
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                                Read More <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                            {% if user.is_authenticated and user == post.author or user.is_staff %}
+                            <a href="{% url 'blog:edit_post' post.slug %}" class="btn btn-outline-secondary btn-sm" title="Edit Post">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'blog:delete_post' post.slug %}" class="btn btn-outline-danger btn-sm" title="Delete Post">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>

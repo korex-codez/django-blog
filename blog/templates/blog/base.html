@@ -42,7 +42,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'blog:home' %}">
                 <i class="fas fa-blog me-2"></i>MyBlog
@@ -74,7 +74,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary btn-sm text-white px-3" href="{% url 'blog:create_post' %}">
+                        <a class="nav-link nav-btn" href="{% url 'blog:create_post' %}">
                             <i class="fas fa-plus"></i> New Post
                         </a>
                     </li>
@@ -96,12 +96,12 @@
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            {% if user.profile.avatar %}
+                            {% if user.profile.avatar and user.profile.avatar.url %}
                             <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="rounded-circle" style="width:30px;height:30px;object-fit:cover;">
                             {% else %}
                             <i class="fas fa-user-circle fa-lg"></i>
                             {% endif %}
-                            {{ user.username }}
+                            <span class="username">{{ user.username }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'blog:profile' %}">
@@ -123,7 +123,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary btn-sm text-white px-3" href="{% url 'blog:register' %}">
+                        <a class="nav-link nav-btn" href="{% url 'blog:register' %}">
                             <i class="fas fa-user-plus"></i> Register
                         </a>
                     </li>
@@ -146,49 +146,58 @@
     </div>
     {% endif %}
 
-    <!-- Main Content -->
+    <!-- Main Content - Full Width (No Sidebar) -->
     <main>
-        {% block content %}{% endblock %}
+        <div class="container py-4">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-5 mt-5">
+    <footer class="py-5 mt-5">
         <div class="container">
             <div class="row">
+                <!-- Brand Column -->
                 <div class="col-md-4">
                     <h5><i class="fas fa-blog me-2"></i>MyBlog</h5>
-                    <p class="text-muted">A professional blog sharing knowledge about technology, programming, and development.</p>
+                    <p>A professional blog sharing knowledge about technology, programming, and development.</p>
                     <div class="social-links">
-                        <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-github fa-lg"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-linkedin fa-lg"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" aria-label="GitHub"><i class="fab fa-github fa-lg"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin fa-lg"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube fa-lg"></i></a>
                     </div>
                 </div>
+                
+                <!-- Quick Links -->
                 <div class="col-md-2">
                     <h6>Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'blog:home' %}" class="text-muted text-decoration-none">Home</a></li>
-                        <li><a href="{% url 'blog:about' %}" class="text-muted text-decoration-none">About</a></li>
-                        <li><a href="{% url 'blog:contact' %}" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="{% url 'blog:home' %}">Home</a></li>
+                        <li><a href="{% url 'blog:about' %}">About</a></li>
+                        <li><a href="{% url 'blog:contact' %}">Contact</a></li>
                     </ul>
                 </div>
+                
+                <!-- Categories -->
                 <div class="col-md-3">
                     <h6>Categories</h6>
                     <ul class="list-unstyled">
                         {% for category in categories|slice:":5" %}
                         <li>
-                            <a href="{% url 'blog:category_posts' category.slug %}" class="text-muted text-decoration-none">
+                            <a href="{% url 'blog:category_posts' category.slug %}">
                                 <i class="fas fa-folder me-1"></i>{{ category.name }}
                             </a>
                         </li>
                         {% endfor %}
                     </ul>
                 </div>
+                
+                <!-- Newsletter -->
                 <div class="col-md-3">
                     <h6>Newsletter</h6>
-                    <p class="text-muted">Subscribe to get latest posts.</p>
-                    <form method="post" action="{% url 'blog:newsletter_subscribe' %}" id="newsletter-form">
+                    <p>Subscribe to get latest posts.</p>
+                    <form method="post" action="{% url 'blog:newsletter_subscribe' %}" id="footer-newsletter-form" class="newsletter-form">
                         {% csrf_token %}
                         <div class="input-group">
                             <input type="email" name="email" class="form-control" placeholder="Your email" required>
@@ -199,8 +208,9 @@
                     </form>
                 </div>
             </div>
-            <hr class="border-secondary mt-4">
-            <div class="text-center text-muted">
+            
+            <hr>
+            <div class="text-center">
                 <small>&copy; 2024 MyBlog. All rights reserved.</small>
             </div>
         </div>

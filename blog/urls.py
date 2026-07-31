@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
 from .views import PostListView, PostSitemap
@@ -10,23 +10,23 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('posts/', PostListView.as_view(), name='post_list'),
     
-    # Post CRUD - SPECIFIC FIRST
+    # Post CRUD
     path('post/create/', views.create_post, name='create_post'),
     path('post/edit/<slug:slug>/', views.edit_post, name='edit_post'),
     path('post/delete/<slug:slug>/', views.delete_post, name='delete_post'),
     path('post/like/<slug:slug>/', views.like_post, name='like_post'),
     path('post/bookmark/<slug:slug>/', views.bookmark_post, name='bookmark_post'),
-    path('post/<slug:slug>/', views.post_detail, name='post_detail'),  # CATCH-ALL LAST
+    path('post/<slug:slug>/', views.post_detail, name='post_detail'),
     
     # Authentication
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     
-    # Profile - SPECIFIC FIRST
+    # Profile
     path('profile/', views.profile_view, name='profile'),
-    path('profile/edit/', views.profile_edit, name='profile_edit'),          # ⬅️ SPECIFIC
-    path('profile/<str:username>/', views.profile_view, name='profile_view'), # ⬅️ CATCH-ALL
+    path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/<str:username>/', views.profile_view, name='profile_view'),
     
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -40,17 +40,18 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
-]
-
-# Password Reset URLs
-urlpatterns += [
+    path('newsletter/unsubscribe/', views.newsletter_unsubscribe, name='newsletter_unsubscribe'),  # ✅ ADD THIS
+    path('api/newsletter/subscribe/', views.newsletter_subscribe_api, name='newsletter_subscribe_api'),
+    
+    # Password Reset
     path('password-reset/',
          auth_views.PasswordResetView.as_view(
              template_name='blog/password_reset.html',
              email_template_name='email/password_reset_email.html',
-             subject_template_name='email/password_reset_subject.txt'
+             subject_template_name='email/password_reset_subject.txt',
+             success_url=reverse_lazy('blog:password_reset_done')
          ),
-         name='password_reset'),  # ✅ This is why we use 'blog:password_reset'
+         name='password_reset'),
     path('password-reset/done/',
          auth_views.PasswordResetDoneView.as_view(
              template_name='blog/password_reset_done.html'
@@ -58,7 +59,8 @@ urlpatterns += [
          name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/',
          auth_views.PasswordResetConfirmView.as_view(
-             template_name='blog/password_reset_confirm.html'
+             template_name='blog/password_reset_confirm.html',
+             success_url=reverse_lazy('blog:password_reset_complete')
          ),
          name='password_reset_confirm'),
     path('password-reset-complete/',

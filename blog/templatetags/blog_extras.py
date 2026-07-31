@@ -1,7 +1,8 @@
 from django import template
 from django.utils.safestring import mark_safe
-from django.template.defaultfilters import truncatewords
-from ..models import Post, Category, Tag
+from django.utils.html import strip_tags
+from blog.models import Post, Category, Tag
+from django.db.models import Count, Q
 import re
 
 register = template.Library()
@@ -9,7 +10,8 @@ register = template.Library()
 @register.simple_tag
 def get_recent_posts(count=5):
     """Get recent published posts"""
-    return Post.objects.filter(status='published').order_by('-created')[:count]
+    # ✅ FIXED: Use 'created_at' instead of 'created'
+    return Post.objects.filter(status='published').order_by('-created_at')[:count]
 
 @register.simple_tag
 def get_popular_posts(count=5):
@@ -22,23 +24,26 @@ def get_featured_posts(count=3):
     return Post.objects.filter(status='published', featured=True)[:count]
 
 @register.simple_tag
-def get_categories():
-    """Get all categories"""
-    return Category.objects.all()
+def get_all_categories():
+    """Get all categories with post count"""
+    return Category.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
 
 @register.simple_tag
-def get_tags():
-    """Get all tags"""
-    return Tag.objects.all()
+def get_all_tags():
+    """Get all tags with post count"""
+    return Tag.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
 
 @register.simple_tag
 def get_archive_years():
     """Get years with posts"""
     from django.db.models.functions import ExtractYear
-    from django.db.models import Count
     
     years = Post.objects.filter(status='published') \
-        .annotate(year=ExtractYear('created')) \
+        .annotate(year=ExtractYear('created_at')) \
         .values('year') \
         .annotate(count=Count('id')) \
         .order_by('-year')
@@ -52,11 +57,14 @@ def truncate_html(value, length=100):
         return ''
     
     # Remove HTML tags
-    plain_text = re.sub(r'<[^>]*>', ' ', value)
+    plain_text = strip_tags(value)
     # Remove extra whitespace
     plain_text = re.sub(r'\s+', ' ', plain_text).strip()
     # Truncate
-    return truncatewords(plain_text, length)
+    words = plain_text.split()
+    if len(words) > length:
+        return ' '.join(words[:length]) + '...'
+    return plain_text
 
 @register.filter(name='reading_time')
 def reading_time(value):
@@ -65,7 +73,7 @@ def reading_time(value):
         return 1
     
     # Remove HTML tags
-    plain_text = re.sub(r'<[^>]*>', ' ', value)
+    plain_text = strip_tags(value)
     # Count words
     words = len(plain_text.split())
     # Average reading speed: 200 words per minute
@@ -124,7 +132,7 @@ def capitalize_first(value):
 def get_sidebar_posts():
     """Get posts for sidebar"""
     return {
-        'recent': Post.objects.filter(status='published').order_by('-created')[:5],
+        'recent': Post.objects.filter(status='published').order_by('-created_at')[:5],
         'popular': Post.objects.filter(status='published').order_by('-views')[:5],
         'featured': Post.objects.filter(status='published', featured=True)[:3]
     }

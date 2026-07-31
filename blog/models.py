@@ -7,6 +7,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from PIL import Image
 import os
+import secrets
+import random
+import string
 
 
 class Category(models.Model):
@@ -25,7 +28,7 @@ class Category(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('category_posts', kwargs={'slug': self.slug})
+        return reverse('blog:category_posts', kwargs={'slug': self.slug})
 
 
 class Tag(models.Model):
@@ -39,7 +42,7 @@ class Tag(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('tag_posts', kwargs={'slug': self.slug})
+        return reverse('blog:tag_posts', kwargs={'slug': self.slug})
 
 
 class Post(models.Model):
@@ -83,6 +86,11 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+            # Make slug unique if it already exists
+            if Post.objects.filter(slug=self.slug).exists():
+                random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+                self.slug = f"{self.slug}-{random_suffix}"
+        
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
         super().save(*args, **kwargs)
@@ -96,12 +104,12 @@ class Post(models.Model):
             img = Image.open(img_path)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-            
             img.thumbnail((1200, 800), Image.Resampling.LANCZOS)
             img.save(img_path, 'JPEG', quality=85, optimize=True)
 
     def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'slug': self.slug})
+        # ✅ FIXED: Added blog: namespace
+        return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
     def total_likes(self):
         return self.likes.count()
@@ -172,10 +180,8 @@ class Profile(models.Model):
             img = Image.open(img_path)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-            
             size = (300, 300)
             img.thumbnail(size, Image.Resampling.LANCZOS)
-            
             width, height = img.size
             if width != height:
                 new_size = min(width, height)
@@ -183,7 +189,6 @@ class Profile(models.Model):
                 top = (height - new_size) // 2
                 img = img.crop((left, top, left + new_size, top + new_size))
                 img = img.resize(size, Image.Resampling.LANCZOS)
-            
             img.save(img_path, 'JPEG', quality=85, optimize=True)
 
 
@@ -206,12 +211,25 @@ class Newsletter(models.Model):
     email = models.EmailField(unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    unsubscribe_token = models.CharField(max_length=100, blank=True, null=True)
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.email
+    
+    def generate_unsubscribe_token(self):
+        self.unsubscribe_token = secrets.token_urlsafe(32)
+        self.save()
+        return self.unsubscribe_token
+    
+    def unsubscribe(self):
+        self.is_active = False
+        self.unsubscribed_at = timezone.now()
+        self.save()
 
 
-# Signals
+# ==================== SIGNALS ====================
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

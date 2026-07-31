@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.views.generic import ListView
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
 import json
@@ -456,6 +457,9 @@ def newsletter_subscribe(request):
         else:
             messages.error(request, 'Please enter a valid email address.')
         return redirect(request.META.get('HTTP_REFERER', 'blog:home'))
+    
+    # GET request - redirect to home
+    return redirect('blog:home')
 
 
 # ==================== SITEMAP ====================
@@ -611,3 +615,52 @@ def get_notifications(request):
             })
     
     return JsonResponse({'notifications': notifications})
+
+def newsletter_unsubscribe(request):
+    """Unsubscribe from newsletter"""
+    email = request.GET.get('email')
+    token = request.GET.get('token')
+    
+    if email and token:
+        try:
+            newsletter = Newsletter.objects.get(email=email, unsubscribe_token=token)
+            newsletter.is_active = False
+            newsletter.unsubscribed_at = timezone.now()
+            newsletter.save()
+            messages.success(request, 'You have been unsubscribed from our newsletter.')
+        except Newsletter.DoesNotExist:
+            messages.error(request, 'Invalid unsubscribe link.')
+    else:
+        if request.method == 'POST':
+            email = request.POST.get('email')
+            try:
+                newsletter = Newsletter.objects.get(email=email)
+                newsletter.is_active = False
+                newsletter.unsubscribed_at = timezone.now()
+                newsletter.save()
+                messages.success(request, 'You have been unsubscribed from our newsletter.')
+            except Newsletter.DoesNotExist:
+                messages.error(request, 'Email not found in our newsletter list.')
+        return render(request, 'blog/newsletter_unsubscribe.html')
+    
+    return redirect('blog:home')
+
+@csrf_exempt
+def newsletter_subscribe_api(request):
+    """API endpoint for newsletter subscription"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+    
+    email = request.POST.get('email', '').strip()
+    
+    if not email:
+        return JsonResponse({'success': False, 'message': 'Please enter your email address.'}, status=400)
+    
+    if Newsletter.objects.filter(email=email).exists():
+        return JsonResponse({'success': False, 'message': 'You are already subscribed to our newsletter.'}, status=400)
+    
+    try:
+        Newsletter.objects.create(email=email)
+        return JsonResponse({'success': True, 'message': 'You have been subscribed to our newsletter!'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': 'Failed to subscribe. Please try again.'}, status=500)
