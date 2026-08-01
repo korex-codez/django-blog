@@ -31,7 +31,7 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # Search & Filters
+    # Search & Filters 
     path('search/', views.search_posts, name='search'),
     path('category/<slug:slug>/', views.category_posts, name='category_posts'),
     path('tag/<slug:slug>/', views.tag_posts, name='tag_posts'),
