@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Default Avatar</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0; }
+        canvas { border-radius: 50%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <canvas id="avatar" width="300" height="300"></canvas>
+    <script>
+        const canvas = document.getElementById('avatar');
+        const ctx = canvas.getContext('2d');
+        
+        // Background circle
+        const gradient = ctx.createRadialGradient(150, 150, 0, 150, 150, 150);
+        gradient.addColorStop(0, '#60a5fa');
+        gradient.addColorStop(0.5, '#3b82f6');
+        gradient.addColorStop(1, '#1d4ed8');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(150, 150, 150, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // User icon (head)
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(150, 110, 50, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // User icon (body)
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.ellipse(150, 250, 70, 50, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Person shadow effect
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.beginPath();
+        ctx.ellipse(150, 260, 80, 15, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add a small camera icon on bottom right
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.fillRect(220, 220, 40, 30);
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(228, 228, 24, 14);
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(240, 235, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Small dots decoration
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        const dots = [
+            [60, 60, 4],
+            [240, 60, 3],
+            [50, 240, 3],
+            [250, 200, 4],
+            [80, 200, 2],
+            [200, 80, 2]
+        ];
+        dots.forEach(([x, y, r]) => {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        // Download link
+        const link = document.createElement('a');
+        link.download = 'default.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.textContent = 'Download Default Avatar';
+        link.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; font-family: Arial; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);';
+        document.body.appendChild(link);
+    </script>
+</body>
+</html>
