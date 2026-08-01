@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create OG Image</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f0f0; }
+        canvas { border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+    <canvas id="ogImage" width="1200" height="630"></canvas>
+    <script>
+        const canvas = document.getElementById('ogImage');
+        const ctx = canvas.getContext('2d');
+        
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+        gradient.addColorStop(0, '#1e293b');
+        gradient.addColorStop(0.5, '#0f172a');
+        gradient.addColorStop(1, '#1e293b');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1200, 630);
+        
+        // Decorative circles
+        ctx.globalAlpha = 0.1;
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(1000, 100, 300, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.arc(100, 500, 200, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        
+        // Main blog icon
+        ctx.fillStyle = '#2563eb';
+        ctx.shadowColor = 'rgba(37, 99, 235, 0.3)';
+        ctx.shadowBlur = 30;
+        ctx.beginPath();
+        ctx.arc(180, 315, 70, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // B letter
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 70px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('B', 180, 320);
+        
+        // Title
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 55px Arial';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('MyBlog', 280, 290);
+        
+        // Subtitle
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '25px Arial';
+        ctx.fillText('Professional Blog about Technology & Development', 280, 350);
+        
+        // Decorative line
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(280, 260);
+        ctx.lineTo(400, 260);
+        ctx.stroke();
+        
+        // Small tags
+        const tags = ['#Python', '#Django', '#JavaScript', '#React', '#AI', '#Cloud'];
+        ctx.font = '18px Arial';
+        ctx.textAlign = 'left';
+        tags.forEach((tag, i) => {
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(280 + (i * 110), 390, 95, 35);
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText(tag, 290 + (i * 110), 412);
+        });
+        
+        // Right side illustration - simplified
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.05)';
+        ctx.strokeStyle = 'rgba(37, 99, 235, 0.2)';
+        ctx.lineWidth = 2;
+        
+        // Code blocks
+        const lines = [
+            {x: 750, y: 180, w: 350, h: 30},
+            {x: 750, y: 225, w: 300, h: 30},
+            {x: 750, y: 270, w: 380, h: 30},
+            {x: 770, y: 315, w: 320, h: 30},
+            {x: 770, y: 360, w: 280, h: 30},
+            {x: 750, y: 405, w: 350, h: 30}
+        ];
+        
+        lines.forEach((line, i) => {
+            ctx.fillStyle = i % 2 === 0 ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.05)';
+            ctx.fillRect(line.x, line.y, line.w, line.h);
+            ctx.strokeRect(line.x, line.y, line.w, line.h);
+            
+            // Small colored blocks on code lines
+            if (i % 2 === 0) {
+                ctx.fillStyle = '#60a5fa';
+                ctx.fillRect(line.x + 10, line.y + 5, 40, 20);
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(line.x + 60, line.y + 5, 60, 20);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(line.x + 130, line.y + 5, 30, 20);
+            }
+        });
+        
+        // Add floating elements
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.arc(700, 150, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f472b6';
+        ctx.beginPath();
+        ctx.arc(1100, 500, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.arc(1150, 100, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        
+        // Download link
+        const link = document.createElement('a');
+        link.download = 'og-image.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.textContent = 'Download OG Image';
+        link.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; font-family: Arial; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);';
+        document.body.appendChild(link);
+    </script>
+</body>
+</html>
