@@ -2,13 +2,18 @@
 {% load static %}
 {% load humanize %}
 
-{% block title %}{{ post.title }} - MyBlog{% endblock %}
+{% block title %}{{ post.title }} - PixelPost{% endblock %}
 
 {% block meta_description %}{{ post.excerpt|truncatewords:30 }}{% endblock %}
 
 {% block og_title %}{{ post.title }}{% endblock %}
 {% block og_description %}{{ post.excerpt|truncatewords:30 }}{% endblock %}
+
 {# REMOVED: featured_image check - just use default OG image #}
+
+{% block breadcrumbs %}
+    {% include 'blog/includes/breadcrumbs.html' with post=post category=post.category %}
+{% endblock %}
 
 {% block content %}
 <article class="post-detail py-4">
@@ -73,21 +78,25 @@
                 </div>
                 {% endif %}
                 
-                <!-- Social Share -->
-                <div class="social-share mt-4">
-                    <strong><i class="fas fa-share-alt me-2"></i>Share:</strong>
-                    <a href="https://twitter.com/intent/tweet?text={{ post.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                        <i class="fab fa-twitter"></i>
+                <!-- ============================================
+                SOCIAL SHARE CARDS - ENHANCED
+                ============================================ -->
+                <div class="social-share-cards mt-4">
+                    <a href="https://twitter.com/intent/tweet?text={{ post.title|urlencode }}&url={{ request.build_absolute_uri|urlencode }}" 
+                       class="share-btn twitter" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-twitter"></i> Tweet
                     </a>
-                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                        <i class="fab fa-facebook"></i>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" 
+                       class="share-btn facebook" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-facebook"></i> Share
                     </a>
-                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ post.title|urlencode }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                        <i class="fab fa-linkedin"></i>
+                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri|urlencode }}&title={{ post.title|urlencode }}" 
+                       class="share-btn linkedin" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-linkedin"></i> Post
                     </a>
-                    <a href="https://api.whatsapp.com/send?text={{ post.title|urlencode }} - {{ request.build_absolute_uri|urlencode }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
+                    <button class="share-btn copy-link" data-url="{{ request.build_absolute_uri }}">
+                        <i class="fas fa-link"></i> Copy Link
+                    </button>
                 </div>
                 
                 <!-- Like and Bookmark -->
@@ -163,6 +172,31 @@
                     </a>
                     {% endif %}
                 </div>
+                
+                <!-- ============================================
+                RELATED POSTS SECTION - NEW
+                ============================================ -->
+                {% if related_posts %}
+                <section class="related-posts mt-5">
+                    <h4 class="mb-4">You might also like</h4>
+                    <div class="row">
+                        {% for related in related_posts %}
+                        <div class="col-md-4 mb-3">
+                            <div class="related-card">
+                                <a href="{% url 'blog:post_detail' related.slug %}">
+                                    {% if related.featured_image %}
+                                    <img src="{{ related.featured_image.url }}" alt="{{ related.title }}" loading="lazy">
+                                    {% else %}
+                                    <img src="{% static 'img/placeholder.jpg' %}" alt="Placeholder" loading="lazy">
+                                    {% endif %}
+                                    <h5>{{ related.title }}</h5>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
                 
                 <!-- Comments Section -->
                 <section class="comments-section mt-5">
@@ -295,6 +329,46 @@ $(document).ready(function() {
         $('html, body').animate({
             scrollTop: form.offset().top - 100
         }, 500);
+    });
+    
+    // Copy link functionality for share button
+    $('.copy-link').click(function() {
+        var url = $(this).data('url') || window.location.href;
+        var btn = $(this);
+        var originalText = btn.html();
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(function() {
+                btn.html('<i class="fas fa-check"></i> Copied!');
+                setTimeout(function() {
+                    btn.html(originalText);
+                }, 2000);
+            }).catch(function() {
+                // Fallback
+                var textarea = document.createElement('textarea');
+                textarea.value = url;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                btn.html('<i class="fas fa-check"></i> Copied!');
+                setTimeout(function() {
+                    btn.html(originalText);
+                }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            var textarea = document.createElement('textarea');
+            textarea.value = url;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            btn.html('<i class="fas fa-check"></i> Copied!');
+            setTimeout(function() {
+                btn.html(originalText);
+            }, 2000);
+        }
     });
 });
 </script>

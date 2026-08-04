@@ -2,9 +2,9 @@ from django.contrib.admin import AdminSite
 from django.utils.translation import gettext_lazy as _
 
 class BlogAdminSite(AdminSite):
-    site_header = _('MyBlog Administration')
-    site_title = _('MyBlog Admin')
-    index_title = _('Welcome to MyBlog Admin Panel')
+    site_header = _('PixelPost Administration')
+    site_title = _('PixelPost Admin')
+    index_title = _('Welcome to PixelPost Admin Panel')
     
     def get_app_list(self, request):
         """Customize app list display"""

@@ -72,12 +72,17 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(null=True, blank=True)
+    
+    # ========== NEW FIELDS ==========
+    scheduled_publish = models.DateTimeField(null=True, blank=True)
+    is_scheduled = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['status', 'created_at']),
             models.Index(fields=['featured']),
+            models.Index(fields=['scheduled_publish']),
         ]
 
     def __str__(self):
@@ -108,7 +113,6 @@ class Post(models.Model):
             img.save(img_path, 'JPEG', quality=85, optimize=True)
 
     def get_absolute_url(self):
-        # ✅ FIXED: Added blog: namespace
         return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
     def total_likes(self):
@@ -128,6 +132,20 @@ class Post(models.Model):
             status='published',
             published_at__lt=self.published_at
         ).order_by('-published_at').first()
+    
+    def track_view(self, request):
+        """Track post view with IP and user agent"""
+        ip_address = request.META.get('REMOTE_ADDR')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        
+        # Create view record
+        PostView.objects.create(
+            post=self,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        self.views += 1
+        self.save()
 
 
 class Comment(models.Model):
@@ -228,6 +246,67 @@ class Newsletter(models.Model):
         self.save()
 
 
+# ========== NEW MODELS FOR ENHANCEMENTS ==========
+
+class PostView(models.Model):
+    """Track individual post views with IP and user agent"""
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='view_records')
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField()
+    viewed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-viewed_at']
+        verbose_name = 'Post View'
+        verbose_name_plural = 'Post Views'
+
+    def __str__(self):
+        return f'{self.post.title} - {self.ip_address} - {self.viewed_at.strftime("%Y-%m-%d %H:%M")}'
+
+
+class UserFollow(models.Model):
+    """User following system"""
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('follower', 'followed')
+        ordering = ['-created_at']
+        verbose_name = 'User Follow'
+        verbose_name_plural = 'User Follows'
+
+    def __str__(self):
+        return f'{self.follower.username} follows {self.followed.username}'
+
+
+class Activity(models.Model):
+    """User activity feed"""
+    ACTION_CHOICES = (
+        ('post_created', 'Created a post'),
+        ('post_updated', 'Updated a post'),
+        ('comment_created', 'Commented on a post'),
+        ('liked', 'Liked a post'),
+        ('bookmarked', 'Bookmarked a post'),
+        ('followed', 'Followed a user'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True)
+    target_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='targeted_activities')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Activity'
+        verbose_name_plural = 'Activities'
+
+    def __str__(self):
+        return f'{self.user.username} - {self.get_action_display()} - {self.created_at.strftime("%Y-%m-%d %H:%M")}'
+
+
 # ==================== SIGNALS ====================
 
 @receiver(post_save, sender=User)
@@ -238,3 +317,26 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+# ========== NEW SIGNALS ==========
+
+@receiver(post_save, sender=Post)
+def create_activity_on_post_creation(sender, instance, created, **kwargs):
+    """Create activity when a post is created"""
+    if created:
+        Activity.objects.create(
+            user=instance.author,
+            action='post_created',
+            post=instance
+        )
+
+@receiver(post_save, sender=Comment)
+def create_activity_on_comment_creation(sender, instance, created, **kwargs):
+    """Create activity when a comment is created"""
+    if created:
+        Activity.objects.create(
+            user=instance.author,
+            action='comment_created',
+            post=instance.post,
+            comment=instance
+        )

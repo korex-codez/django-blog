@@ -1,22 +1,25 @@
 {% extends "blog/base.html" %}
 {% load static %}
 
-{% block title %}About - MyBlog{% endblock %}
+{% block title %}About - PixelPost{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="text-center mb-5">
-                <h1 class="display-4 fw-bold">About MyBlog</h1>
-                <p class="lead text-muted">Sharing knowledge, inspiring minds</p>
+                <div class="about-logo mb-3">
+                    <img src="{% static 'img/logo/weblogo.png' %}" alt="PixelPost Logo" class="img-fluid" style="max-height: 80px;">
+                </div>
+                <h1 class="display-4 fw-bold">About PixelPost</h1>
+                <p class="lead text-muted">Share, Inspire, Debate</p>
             </div>
             
             <div class="card shadow mb-4">
                 <div class="card-body p-4">
                     <h4><i class="fas fa-quote-left text-primary me-2"></i>Our Mission</h4>
                     <p>
-                        MyBlog was created with a simple mission: to provide high-quality, 
+                        PixelPost was created with a simple mission: to provide high-quality, 
                         insightful content about technology, programming, and development. 
                         We believe in the power of sharing knowledge and helping others grow.
                     </p>
@@ -32,27 +35,60 @@
                     <div class="row mt-3">
                         <div class="col-md-4 mb-3">
                             <div class="text-center">
-                                <i class="fas fa-code fa-2x text-primary mb-2"></i>
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-code fa-2x"></i>
+                                </div>
                                 <h6>Programming</h6>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="text-center">
-                                <i class="fas fa-server fa-2x text-primary mb-2"></i>
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-server fa-2x"></i>
+                                </div>
                                 <h6>Web Development</h6>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="text-center">
-                                <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-brain fa-2x"></i>
+                                </div>
                                 <h6>Tech Trends</h6>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-robot fa-2x"></i>
+                                </div>
+                                <h6>Artificial Intelligence</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-cloud fa-2x"></i>
+                                </div>
+                                <h6>Cloud Computing</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
+                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                </div>
+                                <h6>Cybersecurity</h6>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="card shadow">
+            <div class="card shadow mb-4">
                 <div class="card-body p-4">
                     <h4><i class="fas fa-users text-primary me-2"></i>Join Our Community</h4>
                     <p>
@@ -60,17 +96,109 @@
                         for you here. Subscribe to our newsletter, leave comments, and 
                         become part of our growing community.
                     </p>
-                    <div class="d-flex gap-3 mt-3">
+                    
+                    <!-- Community Stats -->
+                    <div class="row mt-4">
+                        <div class="col-4 text-center">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Active Readers</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="stat-number">50+</div>
+                            <div class="stat-label">Published Posts</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="stat-number">10+</div>
+                            <div class="stat-label">Contributors</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3 mt-4 justify-content-center flex-wrap">
                         <a href="{% url 'blog:register' %}" class="btn btn-primary">
                             <i class="fas fa-user-plus me-2"></i>Join Now
                         </a>
                         <a href="{% url 'blog:contact' %}" class="btn btn-outline-primary">
                             <i class="fas fa-envelope me-2"></i>Contact Us
                         </a>
+                        <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-newspaper me-2"></i>Browse Posts
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Why PixelPost Section -->
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h4><i class="fas fa-star text-primary me-2"></i>Why PixelPost?</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <div>
+                                    <h6>Quality Content</h6>
+                                    <p class="text-muted small">Every article is carefully crafted and reviewed.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <div>
+                                    <h6>Expert Writers</h6>
+                                    <p class="text-muted small">Content written by industry professionals.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <div>
+                                    <h6>Community Driven</h6>
+                                    <p class="text-muted small">Engage with like-minded developers.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <div>
+                                    <h6>Regular Updates</h6>
+                                    <p class="text-muted small">Fresh content posted every week.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .bg-primary-subtle {
+        background: var(--primary-subtle, rgba(37, 99, 235, 0.10));
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+</style>
 {% endblock %}

@@ -48,7 +48,7 @@ def create_og_image():
             # Fallback to default
             font = ImageFont.load_default()
     
-    draw.text((150, 280), "MyBlog", fill='white', font=font)
+    draw.text((150, 280), "PixelPost", fill='white', font=font)
     draw.text((150, 350), "Professional Blog about Technology & Development", fill='#94a3b8', font=font)
     
     os.makedirs('static/img', exist_ok=True)

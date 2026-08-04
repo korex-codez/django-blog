@@ -15,9 +15,10 @@ from django.views.generic import ListView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
+from django.db.models.functions import TruncMonth
 import json
 
-from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter
+from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter, PostView, Activity, UserFollow
 from .forms import (
     PostForm, CommentForm, UserRegisterForm, UserLoginForm,
     ProfileForm, ContactForm, NewsletterForm, EditPostForm
@@ -75,9 +76,20 @@ def post_detail(request, slug):
     """Display a single post with comments and interactions"""
     post = get_object_or_404(Post, slug=slug, status='published')
     
-    # Increment view count
+    # Increment view count and track view
     post.views += 1
     post.save()
+    
+    # Track view with IP and user agent
+    if request.META.get('REMOTE_ADDR'):
+        try:
+            PostView.objects.create(
+                post=post,
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500]
+            )
+        except:
+            pass
     
     # Check if user liked or bookmarked the post
     user_liked = False
@@ -104,6 +116,16 @@ def post_detail(request, slug):
                 except Comment.DoesNotExist:
                     pass
             comment.save()
+            
+            # Create activity for comment
+            if request.user.is_authenticated:
+                Activity.objects.create(
+                    user=request.user,
+                    action='comment_created',
+                    post=post,
+                    comment=comment
+                )
+            
             messages.success(request, 'Your comment was posted successfully!')
             return redirect('blog:post_detail', slug=post.slug)
     else:
@@ -113,6 +135,9 @@ def post_detail(request, slug):
     next_post = post.get_next_post()
     previous_post = post.get_previous_post()
     
+    # Get related posts
+    related_posts = get_related_posts(post)
+    
     context = {
         'post': post,
         'comments': comments,
@@ -121,8 +146,18 @@ def post_detail(request, slug):
         'user_bookmarked': user_bookmarked,
         'next_post': next_post,
         'previous_post': previous_post,
+        'related_posts': related_posts,
     }
     return render(request, 'blog/post_detail.html', context)
+
+
+def get_related_posts(post, limit=3):
+    """Get related posts based on category and tags"""
+    related = Post.objects.filter(
+        Q(category=post.category) | Q(tags__in=post.tags.all()),
+        status='published'
+    ).exclude(id=post.id).distinct()[:limit]
+    return related
 
 
 # ==================== AUTHENTICATION VIEWS ====================
@@ -197,11 +232,17 @@ def profile_view(request, username=None):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
     
+    # Get follower and following counts
+    followers_count = profile_user.followers.count() if hasattr(profile_user, 'followers') else 0
+    following_count = profile_user.following.count() if hasattr(profile_user, 'following') else 0
+    
     context = {
         'profile_user': profile_user,
         'posts': posts,
         'post_count': user_posts.count(),
         'comment_count': Comment.objects.filter(author=profile_user).count(),
+        'followers_count': followers_count,
+        'following_count': following_count,
     }
     return render(request, 'blog/profile.html', context)
 
@@ -235,6 +276,14 @@ def create_post(request):
             post.author = request.user
             post.save()
             form.save_m2m()
+            
+            # Create activity
+            Activity.objects.create(
+                user=request.user,
+                action='post_created',
+                post=post
+            )
+            
             messages.success(request, 'Your post was created successfully!')
             return redirect('blog:post_detail', slug=post.slug)
     else:
@@ -254,6 +303,14 @@ def edit_post(request, slug):
         form = EditPostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             form.save()
+            
+            # Create activity
+            Activity.objects.create(
+                user=request.user,
+                action='post_updated',
+                post=post
+            )
+            
             messages.success(request, 'Your post was updated successfully!')
             return redirect('blog:post_detail', slug=post.slug)
     else:
@@ -278,24 +335,50 @@ def delete_post(request, slug):
 
 @login_required
 def dashboard(request):
-    """User dashboard with statistics"""
+    """User dashboard with statistics and charts"""
     user_posts = Post.objects.filter(author=request.user)
     
+    # Basic stats
     total_posts = user_posts.count()
     published_posts = user_posts.filter(status='published').count()
     draft_posts = user_posts.filter(status='draft').count()
+    archived_posts = user_posts.filter(status='archived').count()
     total_views = user_posts.aggregate(total=Count('views'))['total'] or 0
     total_comments = Comment.objects.filter(post__author=request.user).count()
     
+    # Recent posts
     recent_posts = user_posts.order_by('-created_at')[:5]
+    
+    # Get views data for chart (last 6 months)
+    views_data = []
+    try:
+        views_data = list(user_posts.filter(
+            status='published',
+            created_at__gte=timezone.now() - timedelta(days=180)
+        ).annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(
+            views=Count('views')
+        ).order_by('month'))
+    except:
+        pass
+    
+    # Recent comments for moderation
+    recent_comments = Comment.objects.filter(
+        post__author=request.user,
+        active=False
+    ).order_by('-created_at')[:5]
     
     context = {
         'total_posts': total_posts,
         'published_posts': published_posts,
         'draft_posts': draft_posts,
+        'archived_posts': archived_posts,
         'total_views': total_views,
         'total_comments': total_comments,
         'recent_posts': recent_posts,
+        'views_data': views_data,
+        'recent_comments': recent_comments,
     }
     return render(request, 'blog/dashboard.html', context)
 
@@ -313,6 +396,12 @@ def like_post(request, slug):
     else:
         post.likes.add(request.user)
         liked = True
+        # Create activity
+        Activity.objects.create(
+            user=request.user,
+            action='liked',
+            post=post
+        )
     return JsonResponse({'liked': liked, 'total_likes': post.total_likes()})
 
 
@@ -327,26 +416,45 @@ def bookmark_post(request, slug):
     else:
         post.bookmarks.add(request.user)
         bookmarked = True
+        # Create activity
+        Activity.objects.create(
+            user=request.user,
+            action='bookmarked',
+            post=post
+        )
     return JsonResponse({'bookmarked': bookmarked})
 
 
 # ==================== SEARCH AND FILTER VIEWS ====================
 
 def search_posts(request):
-    """Search posts by query"""
+    """Search posts by query with filters"""
     query = request.GET.get('q', '')
+    category_slug = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', 'recent')
+    
+    posts = Post.objects.filter(status='published')
+    
     if query:
-        posts = Post.objects.filter(
-            Q(status='published') &
-            (Q(title__icontains=query) |
-             Q(content__icontains=query) |
-             Q(excerpt__icontains=query) |
-             Q(author__username__icontains=query) |
-             Q(category__name__icontains=query) |
-             Q(tags__name__icontains=query))
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(excerpt__icontains=query) |
+            Q(author__username__icontains=query) |
+            Q(category__name__icontains=query) |
+            Q(tags__name__icontains=query)
         ).distinct()
-    else:
-        posts = Post.objects.none()
+    
+    if category_slug:
+        posts = posts.filter(category__slug=category_slug)
+    
+    # Sorting
+    if sort_by == 'popular':
+        posts = posts.order_by('-views')
+    elif sort_by == 'oldest':
+        posts = posts.order_by('created_at')
+    else:  # recent
+        posts = posts.order_by('-created_at')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -357,9 +465,15 @@ def search_posts(request):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
     
+    # Get all categories for filter dropdown
+    categories = Category.objects.filter(posts__status='published').distinct()
+    
     context = {
         'posts': posts,
         'query': query,
+        'selected_category': category_slug,
+        'sort': sort_by,
+        'categories': categories,
         'result_count': posts.paginator.count if posts else 0,
     }
     return render(request, 'blog/search_results.html', context)
@@ -444,21 +558,61 @@ def contact(request):
 
 
 def newsletter_subscribe(request):
-    """Subscribe to newsletter"""
+    """Subscribe to newsletter - handles both AJAX and regular POST"""
     if request.method == 'POST':
         form = NewsletterForm(request.POST)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
         if form.is_valid():
             email = form.cleaned_data['email']
             if Newsletter.objects.filter(email=email).exists():
+                if is_ajax:
+                    return JsonResponse({'success': False, 'message': 'You are already subscribed to our newsletter.'}, status=400)
                 messages.info(request, 'You are already subscribed to our newsletter.')
             else:
                 form.save()
+                if is_ajax:
+                    return JsonResponse({'success': True, 'message': 'You have been subscribed to our newsletter!'})
                 messages.success(request, 'You have been subscribed to our newsletter!')
         else:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
             messages.error(request, 'Please enter a valid email address.')
-        return redirect(request.META.get('HTTP_REFERER', 'blog:home'))
+        
+        if not is_ajax:
+            return redirect(request.META.get('HTTP_REFERER', 'blog:home'))
     
     # GET request - redirect to home
+    return redirect('blog:home')
+
+
+def newsletter_unsubscribe(request):
+    """Unsubscribe from newsletter"""
+    email = request.GET.get('email')
+    token = request.GET.get('token')
+    
+    if email and token:
+        try:
+            newsletter = Newsletter.objects.get(email=email, unsubscribe_token=token)
+            newsletter.is_active = False
+            newsletter.unsubscribed_at = timezone.now()
+            newsletter.save()
+            messages.success(request, 'You have been unsubscribed from our newsletter.')
+        except Newsletter.DoesNotExist:
+            messages.error(request, 'Invalid unsubscribe link.')
+    else:
+        if request.method == 'POST':
+            email = request.POST.get('email')
+            try:
+                newsletter = Newsletter.objects.get(email=email)
+                newsletter.is_active = False
+                newsletter.unsubscribed_at = timezone.now()
+                newsletter.save()
+                messages.success(request, 'You have been unsubscribed from our newsletter.')
+            except Newsletter.DoesNotExist:
+                messages.error(request, 'Email not found in our newsletter list.')
+        return render(request, 'blog/newsletter_unsubscribe.html')
+    
     return redirect('blog:home')
 
 
@@ -591,7 +745,29 @@ def save_post_draft(request):
     """API endpoint for saving drafts"""
     try:
         data = json.loads(request.body)
-        return JsonResponse({'success': True})
+        title = data.get('title', '')
+        content = data.get('content', '')
+        slug = data.get('slug', '')
+        
+        if slug:
+            post = Post.objects.get(slug=slug, author=request.user)
+            post.title = title
+            post.content = content
+            post.status = 'draft'
+            post.save()
+        else:
+            from django.utils.text import slugify
+            post = Post.objects.create(
+                title=title or 'Untitled Draft',
+                content=content,
+                slug=slugify(title or 'untitled-draft'),
+                author=request.user,
+                status='draft'
+            )
+        
+        return JsonResponse({'success': True, 'slug': post.slug})
+    except Post.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
@@ -616,51 +792,117 @@ def get_notifications(request):
     
     return JsonResponse({'notifications': notifications})
 
-def newsletter_unsubscribe(request):
-    """Unsubscribe from newsletter"""
-    email = request.GET.get('email')
-    token = request.GET.get('token')
-    
-    if email and token:
-        try:
-            newsletter = Newsletter.objects.get(email=email, unsubscribe_token=token)
-            newsletter.is_active = False
-            newsletter.unsubscribed_at = timezone.now()
-            newsletter.save()
-            messages.success(request, 'You have been unsubscribed from our newsletter.')
-        except Newsletter.DoesNotExist:
-            messages.error(request, 'Invalid unsubscribe link.')
-    else:
-        if request.method == 'POST':
-            email = request.POST.get('email')
-            try:
-                newsletter = Newsletter.objects.get(email=email)
-                newsletter.is_active = False
-                newsletter.unsubscribed_at = timezone.now()
-                newsletter.save()
-                messages.success(request, 'You have been unsubscribed from our newsletter.')
-            except Newsletter.DoesNotExist:
-                messages.error(request, 'Email not found in our newsletter list.')
-        return render(request, 'blog/newsletter_unsubscribe.html')
+
+def tag_autocomplete(request):
+    """API endpoint for tag autocomplete"""
+    query = request.GET.get('q', '')
+    if len(query) >= 2:
+        tags = Tag.objects.filter(name__icontains=query).values_list('name', flat=True)[:10]
+        return JsonResponse(list(tags), safe=False)
+    return JsonResponse([], safe=False)
+
+
+# ==================== USER FOLLOW VIEWS ====================
+
+@login_required
+def follow_user(request, username):
+    """Follow a user"""
+    user_to_follow = get_object_or_404(User, username=username)
+    if user_to_follow != request.user:
+        UserFollow.objects.get_or_create(follower=request.user, followed=user_to_follow)
+        messages.success(request, f'You are now following {username}!')
+    return redirect('blog:profile_view', username=username)
+
+
+@login_required
+def unfollow_user(request, username):
+    """Unfollow a user"""
+    user_to_unfollow = get_object_or_404(User, username=username)
+    UserFollow.objects.filter(follower=request.user, followed=user_to_unfollow).delete()
+    messages.success(request, f'You have unfollowed {username}.')
+    return redirect('blog:profile_view', username=username)
+
+
+# ==================== ACTIVITY FEED VIEW ====================
+
+@login_required
+def activity_feed(request):
+    """User activity feed"""
+    activities = Activity.objects.filter(user=request.user)[:20]
+    return render(request, 'blog/activity_feed.html', {'activities': activities})
+
+# Newsletter subscription (existing)
+def newsletter_subscribe(request):
+    """Subscribe to newsletter - handles both AJAX and regular POST"""
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            if Newsletter.objects.filter(email=email).exists():
+                message = 'You are already subscribed to our newsletter.'
+                if is_ajax:
+                    return JsonResponse({'success': False, 'message': message}, status=400)
+                messages.info(request, message)
+            else:
+                form.save()
+                message = 'You have been subscribed to our newsletter!'
+                if is_ajax:
+                    return JsonResponse({'success': True, 'message': message})
+                messages.success(request, message)
+        else:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+            messages.error(request, 'Please enter a valid email address.')
+        
+        if not is_ajax:
+            return redirect(request.META.get('HTTP_REFERER', 'blog:home'))
     
     return redirect('blog:home')
 
-@csrf_exempt
-def newsletter_subscribe_api(request):
-    """API endpoint for newsletter subscription"""
+# API endpoints (add these if not present)
+def tag_autocomplete(request):
+    """API endpoint for tag autocomplete"""
+    query = request.GET.get('q', '')
+    if len(query) >= 2:
+        from .models import Tag
+        tags = Tag.objects.filter(name__icontains=query).values_list('name', flat=True)[:10]
+        return JsonResponse(list(tags), safe=False)
+    return JsonResponse([], safe=False)
+
+def save_draft(request):
+    """API endpoint for saving drafts"""
+    import json
+    from django.views.decorators.http import require_POST
+    
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
-    
-    email = request.POST.get('email', '').strip()
-    
-    if not email:
-        return JsonResponse({'success': False, 'message': 'Please enter your email address.'}, status=400)
-    
-    if Newsletter.objects.filter(email=email).exists():
-        return JsonResponse({'success': False, 'message': 'You are already subscribed to our newsletter.'}, status=400)
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=405)
     
     try:
-        Newsletter.objects.create(email=email)
-        return JsonResponse({'success': True, 'message': 'You have been subscribed to our newsletter!'})
+        data = json.loads(request.body)
+        title = data.get('title', '')
+        content = data.get('content', '')
+        slug = data.get('slug', '')
+        
+        if slug:
+            post = Post.objects.get(slug=slug, author=request.user)
+            post.title = title
+            post.content = content
+            post.status = 'draft'
+            post.save()
+        else:
+            from django.utils.text import slugify
+            post = Post.objects.create(
+                title=title or 'Untitled Draft',
+                content=content,
+                slug=slugify(title or 'untitled-draft'),
+                author=request.user,
+                status='draft'
+            )
+        
+        return JsonResponse({'success': True, 'slug': post.slug})
+    except Post.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'message': 'Failed to subscribe. Please try again.'}, status=500)
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)

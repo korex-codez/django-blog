@@ -50,7 +50,7 @@ def create_og_image():
         font_small = ImageFont.load_default()
     
     # Draw text
-    draw.text((300, 280), "MyBlog", fill='white', font=font_big)
+    draw.text((300, 280), "PixelPost", fill='white', font=font_big)
     draw.text((300, 350), "Professional Blog about Technology & Development", fill='#94a3b8', font=font_small)
     
     # Draw decorative line

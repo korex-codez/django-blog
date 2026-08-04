@@ -31,7 +31,7 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # Search & Filters 
+    # Search & Filters
     path('search/', views.search_posts, name='search'),
     path('category/<slug:slug>/', views.category_posts, name='category_posts'),
     path('tag/<slug:slug>/', views.tag_posts, name='tag_posts'),
@@ -40,8 +40,12 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
-    path('newsletter/unsubscribe/', views.newsletter_unsubscribe, name='newsletter_unsubscribe'),  # ✅ ADD THIS
-    path('api/newsletter/subscribe/', views.newsletter_subscribe_api, name='newsletter_subscribe_api'),
+    # ✅ REMOVED the duplicate API URL
+    # path('api/newsletter/subscribe/', views.newsletter_subscribe_api, name='newsletter_subscribe_api'),
+    
+    # ✅ API Endpoints for enhancements
+    path('api/tag-autocomplete/', views.tag_autocomplete, name='tag_autocomplete'),
+    path('api/save-draft/', views.save_draft, name='save_draft'),
     
     # Password Reset
     path('password-reset/',

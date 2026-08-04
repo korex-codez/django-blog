@@ -1,0 +1,32 @@
+<!-- templates/blog/includes/breadcrumbs.html -->
+<nav aria-label="Breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'blog:home' %}">
+                <i class="fas fa-home"></i> Home
+            </a>
+        </li>
+        {% if category %}
+        <li class="breadcrumb-item">
+            <a href="{% url 'blog:category_posts' category.slug %}">
+                {{ category.name }}
+            </a>
+        </li>
+        {% endif %}
+        {% if post %}
+        <li class="breadcrumb-item active" aria-current="page">
+            {{ post.title|truncatechars:30 }}
+        </li>
+        {% endif %}
+        {% if query %}
+        <li class="breadcrumb-item active" aria-current="page">
+            Search: "{{ query }}"
+        </li>
+        {% endif %}
+        {% if tag %}
+        <li class="breadcrumb-item active" aria-current="page">
+            #{{ tag.name }}
+        </li>
+        {% endif %}
+    </ol>
+</nav>

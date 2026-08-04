@@ -2,14 +2,14 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block title %}Contact - MyBlog{% endblock %}
+{% block title %}Contact - PixelPost{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="text-center mb-4">
-                <h1 class="display-4 fw-bold">Contact Us</h1>
+                <h1 class="display-4 fw-bold">Contact PixelPost</h1>
                 <p class="lead text-muted">Have a question or suggestion? We'd love to hear from you!</p>
             </div>
             
@@ -17,27 +17,59 @@
                 <div class="col-md-4 mb-4">
                     <div class="card text-center h-100 shadow-sm hover-card">
                         <div class="card-body">
-                            <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope fa-2x text-primary"></i>
+                            </div>
                             <h6>Email</h6>
-                            <p class="text-muted">support@myblog.com</p>
+                            <p class="text-muted">support@pixelpost.com</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card text-center h-100 shadow-sm hover-card">
                         <div class="card-body">
-                            <i class="fas fa-twitter fa-2x text-primary mb-3"></i>
+                            <div class="contact-icon">
+                                <i class="fab fa-twitter fa-2x text-primary"></i>
+                            </div>
                             <h6>Twitter</h6>
-                            <p class="text-muted">@myblog</p>
+                            <p class="text-muted">@pixelpost</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card text-center h-100 shadow-sm hover-card">
                         <div class="card-body">
-                            <i class="fas fa-github fa-2x text-primary mb-3"></i>
+                            <div class="contact-icon">
+                                <i class="fab fa-github fa-2x text-primary"></i>
+                            </div>
                             <h6>GitHub</h6>
-                            <p class="text-muted">github.com/myblog</p>
+                            <p class="text-muted">github.com/pixelpost</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Contact Options -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card text-center h-100 shadow-sm hover-card">
+                        <div class="card-body">
+                            <div class="contact-icon">
+                                <i class="fab fa-linkedin fa-2x text-primary"></i>
+                            </div>
+                            <h6>LinkedIn</h6>
+                            <p class="text-muted">linkedin.com/company/pixelpost</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card text-center h-100 shadow-sm hover-card">
+                        <div class="card-body">
+                            <div class="contact-icon">
+                                <i class="fab fa-youtube fa-2x text-primary"></i>
+                            </div>
+                            <h6>YouTube</h6>
+                            <p class="text-muted">youtube.com/@pixelpost</p>
                         </div>
                     </div>
                 </div>
@@ -45,7 +77,9 @@
             
             <div class="card shadow">
                 <div class="card-body p-4">
-                    <h4 class="mb-3"><i class="fas fa-paper-plane me-2"></i>Send Us a Message</h4>
+                    <h4 class="mb-3"><i class="fas fa-paper-plane me-2 text-primary"></i>Send Us a Message</h4>
+                    <p class="text-muted">Fill out the form below and we'll get back to you as soon as possible.</p>
+                    
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
@@ -94,13 +128,103 @@
                             {% endif %}
                         </div>
                         
+                        <div class="form-text mb-3">
+                            <i class="fas fa-info-circle me-1"></i> We'll never share your email with anyone else.
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-paper-plane me-2"></i>Send Message
                         </button>
                     </form>
                 </div>
             </div>
+            
+            <!-- FAQ Section -->
+            <div class="card shadow mt-4">
+                <div class="card-body p-4">
+                    <h4 class="mb-3"><i class="fas fa-question-circle me-2 text-primary"></i>Frequently Asked Questions</h4>
+                    
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How quickly do you respond?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    We typically respond within 24-48 hours during business days.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Can I contribute to PixelPost?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! We welcome guest posts and contributions. Please reach out via email.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Do you have a newsletter?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! Subscribe to our newsletter for regular updates and exclusive content.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .contact-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        background: rgba(37, 99, 235, 0.08);
+        transition: all var(--transition-base);
+    }
+    
+    .contact-icon:hover {
+        transform: translateY(-4px) scale(1.05);
+        background: rgba(37, 99, 235, 0.15);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(37, 99, 235, 0.05);
+        color: var(--primary);
+    }
+    
+    .accordion-button:focus {
+        box-shadow: var(--shadow-focus);
+    }
+    
+    /* Dark mode support */
+    body.dark-mode .contact-icon {
+        background: rgba(37, 99, 235, 0.20);
+    }
+    
+    body.dark-mode .accordion-button:not(.collapsed) {
+        background-color: rgba(37, 99, 235, 0.15);
+    }
+</style>
 {% endblock %}
