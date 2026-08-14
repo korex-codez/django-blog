@@ -4,168 +4,97 @@
 {% block title %}About - PixelPost{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="text-center mb-5">
-                <div class="about-logo mb-3">
-                    <img src="{% static 'img/logo/weblogo.png' %}" alt="PixelPost Logo" class="img-fluid" style="max-height: 80px;">
+                <div class="about-header-icon mb-3">
+                    <i class="fas fa-rocket"></i>
                 </div>
-                <h1 class="display-4 fw-bold">About PixelPost</h1>
-                <p class="lead text-muted">Share, Inspire, Debate</p>
+                <h1 class="display-4 fw-bold text-gradient">About PixelPost</h1>
+                <p class="lead text-muted">Sharing knowledge, inspiring minds</p>
             </div>
             
-            <div class="card shadow mb-4">
+            <div class="card shadow-lg card-glass mb-4">
                 <div class="card-body p-4">
-                    <h4><i class="fas fa-quote-left text-primary me-2"></i>Our Mission</h4>
-                    <p>
-                        PixelPost was created with a simple mission: to provide high-quality, 
-                        insightful content about technology, programming, and development. 
-                        We believe in the power of sharing knowledge and helping others grow.
-                    </p>
-                </div>
-            </div>
-            
-            <div class="card shadow mb-4">
-                <div class="card-body p-4">
-                    <h4><i class="fas fa-bullseye text-primary me-2"></i>What We Do</h4>
-                    <p>
-                        We publish articles, tutorials, and insights on various topics including:
-                    </p>
-                    <div class="row mt-3">
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-code fa-2x"></i>
-                                </div>
-                                <h6>Programming</h6>
-                            </div>
+                    <div class="d-flex align-items-start">
+                        <div class="about-icon-wrapper me-3">
+                            <i class="fas fa-quote-left"></i>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-server fa-2x"></i>
-                                </div>
-                                <h6>Web Development</h6>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-brain fa-2x"></i>
-                                </div>
-                                <h6>Tech Trends</h6>
-                            </div>
+                        <div>
+                            <h4 class="fw-bold">Our Mission</h4>
+                            <p class="text-muted mb-0">
+                                PixelPost was created with a simple mission: to provide high-quality, 
+                                insightful content about technology, programming, and development. 
+                                We believe in the power of sharing knowledge and helping others grow.
+                            </p>
                         </div>
                     </div>
-                    
-                    <div class="row mt-2">
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-robot fa-2x"></i>
-                                </div>
-                                <h6>Artificial Intelligence</h6>
-                            </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-lg card-glass mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-start">
+                        <div class="about-icon-wrapper me-3">
+                            <i class="fas fa-bullseye"></i>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-cloud fa-2x"></i>
+                        <div>
+                            <h4 class="fw-bold">What We Do</h4>
+                            <p class="text-muted">
+                                We publish articles, tutorials, and insights on various topics including:
+                            </p>
+                            <div class="row mt-3 g-3">
+                                <div class="col-md-4">
+                                    <div class="topic-card text-center p-3">
+                                        <div class="topic-icon-wrapper mb-2">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <h6 class="mb-0 fw-bold">Programming</h6>
+                                    </div>
                                 </div>
-                                <h6>Cloud Computing</h6>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="text-center">
-                                <div class="icon-circle bg-primary-subtle text-primary mb-2">
-                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                <div class="col-md-4">
+                                    <div class="topic-card text-center p-3">
+                                        <div class="topic-icon-wrapper web-icon mb-2">
+                                            <i class="fas fa-server"></i>
+                                        </div>
+                                        <h6 class="mb-0 fw-bold">Web Development</h6>
+                                    </div>
                                 </div>
-                                <h6>Cybersecurity</h6>
+                                <div class="col-md-4">
+                                    <div class="topic-card text-center p-3">
+                                        <div class="topic-icon-wrapper ai-icon mb-2">
+                                            <i class="fas fa-brain"></i>
+                                        </div>
+                                        <h6 class="mb-0 fw-bold">Tech Trends</h6>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="card shadow mb-4">
+            <div class="card shadow-lg card-glass">
                 <div class="card-body p-4">
-                    <h4><i class="fas fa-users text-primary me-2"></i>Join Our Community</h4>
-                    <p>
-                        Whether you're a beginner or an experienced developer, there's a place 
-                        for you here. Subscribe to our newsletter, leave comments, and 
-                        become part of our growing community.
-                    </p>
-                    
-                    <!-- Community Stats -->
-                    <div class="row mt-4">
-                        <div class="col-4 text-center">
-                            <div class="stat-number">500+</div>
-                            <div class="stat-label">Active Readers</div>
+                    <div class="d-flex align-items-start">
+                        <div class="about-icon-wrapper community-icon me-3">
+                            <i class="fas fa-users"></i>
                         </div>
-                        <div class="col-4 text-center">
-                            <div class="stat-number">50+</div>
-                            <div class="stat-label">Published Posts</div>
-                        </div>
-                        <div class="col-4 text-center">
-                            <div class="stat-number">10+</div>
-                            <div class="stat-label">Contributors</div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-3 mt-4 justify-content-center flex-wrap">
-                        <a href="{% url 'blog:register' %}" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-2"></i>Join Now
-                        </a>
-                        <a href="{% url 'blog:contact' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-envelope me-2"></i>Contact Us
-                        </a>
-                        <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-newspaper me-2"></i>Browse Posts
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Why PixelPost Section -->
-            <div class="card shadow">
-                <div class="card-body p-4">
-                    <h4><i class="fas fa-star text-primary me-2"></i>Why PixelPost?</h4>
-                    <div class="row mt-3">
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                <div>
-                                    <h6>Quality Content</h6>
-                                    <p class="text-muted small">Every article is carefully crafted and reviewed.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                <div>
-                                    <h6>Expert Writers</h6>
-                                    <p class="text-muted small">Content written by industry professionals.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                <div>
-                                    <h6>Community Driven</h6>
-                                    <p class="text-muted small">Engage with like-minded developers.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="d-flex align-items-start">
-                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                <div>
-                                    <h6>Regular Updates</h6>
-                                    <p class="text-muted small">Fresh content posted every week.</p>
-                                </div>
+                        <div>
+                            <h4 class="fw-bold">Join Our Community</h4>
+                            <p class="text-muted">
+                                Whether you're a beginner or an experienced developer, there's a place 
+                                for you here. Subscribe to our newsletter, leave comments, and 
+                                become part of our growing community.
+                            </p>
+                            <div class="d-flex gap-3 mt-3 flex-wrap">
+                                <a href="{% url 'blog:register' %}" class="btn btn-primary btn-hover-glow">
+                                    <i class="fas fa-user-plus me-2"></i>Join Now
+                                </a>
+                                <a href="{% url 'blog:contact' %}" class="btn btn-outline-primary btn-hover-glow">
+                                    <i class="fas fa-envelope me-2"></i>Contact Us
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -176,29 +105,202 @@
 </div>
 
 <style>
-    .icon-circle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
+    /* About page specific styles - Light theme only */
+    .text-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .about-header-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.1);
+        font-size: 2.5rem;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+    
+    .about-header-icon:hover {
+        transform: scale(1.05) rotate(5deg);
+        background: rgba(102, 126, 234, 0.2);
+    }
+    
+    .card-glass {
+        background: #ffffff;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+    
+    .card-glass:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    .about-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 12px;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        font-size: 1.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .card-glass:hover .about-icon-wrapper {
+        transform: scale(1.05) rotate(5deg);
+        background: rgba(102, 126, 234, 0.15);
+    }
+    
+    .about-icon-wrapper.community-icon {
+        background: rgba(72, 187, 120, 0.1);
+        color: #48bb78;
+    }
+    
+    .card-glass:hover .community-icon {
+        background: rgba(72, 187, 120, 0.15);
+    }
+    
+    .topic-card {
+        background: #fafbff;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+    
+    .topic-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(102, 126, 234, 0.2);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        background: #ffffff;
+    }
+    
+    .topic-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
         margin: 0 auto;
     }
     
-    .bg-primary-subtle {
-        background: var(--primary-subtle, rgba(37, 99, 235, 0.10));
+    .topic-card:hover .topic-icon-wrapper {
+        transform: scale(1.1);
+        background: rgba(102, 126, 234, 0.15);
     }
     
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--primary);
+    .topic-card .web-icon {
+        background: rgba(237, 137, 54, 0.1);
+        color: #ed8936;
     }
     
-    .stat-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
+    .topic-card:hover .web-icon {
+        background: rgba(237, 137, 54, 0.15);
+    }
+    
+    .topic-card .ai-icon {
+        background: rgba(159, 122, 234, 0.1);
+        color: #9f7aea;
+    }
+    
+    .topic-card:hover .ai-icon {
+        background: rgba(159, 122, 234, 0.15);
+    }
+    
+    .topic-card h6 {
+        font-size: 0.9rem;
+        color: #2d3748;
+    }
+    
+    .card-glass h4 {
+        font-size: 1.25rem;
+        color: #1a202c;
+    }
+    
+    .card-glass p {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #4a5568;
+    }
+    
+    .btn-hover-glow {
+        transition: all 0.3s ease;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        padding: 0.625rem 1.5rem;
+    }
+    
+    .btn-hover-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-outline-primary.btn-hover-glow:hover {
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .about-header-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        
+        .display-4 {
+            font-size: 2.5rem;
+        }
+        
+        .about-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            font-size: 1rem;
+        }
+        
+        .topic-card {
+            padding: 1rem !important;
+        }
+        
+        .topic-icon-wrapper {
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+        }
+        
+        .d-flex.align-items-start {
+            flex-direction: column;
+        }
+        
+        .about-icon-wrapper.me-3 {
+            margin-right: 0 !important;
+            margin-bottom: 1rem;
+        }
+        
+        .d-flex.gap-3 {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .d-flex.gap-3 a {
+            text-align: center;
+        }
     }
 </style>
 {% endblock %}

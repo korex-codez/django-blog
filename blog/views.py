@@ -16,7 +16,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncMonth
+from django.db.models import Sum, Count
 import json
+import urllib.parse
 
 from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter, PostView, Activity, UserFollow
 from .forms import (
@@ -232,20 +234,22 @@ def profile_view(request, username=None):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
     
-    # Get follower and following counts
-    followers_count = profile_user.followers.count() if hasattr(profile_user, 'followers') else 0
-    following_count = profile_user.following.count() if hasattr(profile_user, 'following') else 0
+    # ✅ Get bookmarked posts (only for the logged-in user viewing their own profile)
+    bookmark_posts = []
+    bookmark_count = 0
+    if request.user == profile_user:
+        bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+        bookmark_count = bookmark_posts.count()
     
     context = {
         'profile_user': profile_user,
         'posts': posts,
         'post_count': user_posts.count(),
         'comment_count': Comment.objects.filter(author=profile_user).count(),
-        'followers_count': followers_count,
-        'following_count': following_count,
+        'bookmark_posts': bookmark_posts,
+        'bookmark_count': bookmark_count,
     }
     return render(request, 'blog/profile.html', context)
-
 
 @login_required
 def profile_edit(request):
@@ -343,7 +347,10 @@ def dashboard(request):
     published_posts = user_posts.filter(status='published').count()
     draft_posts = user_posts.filter(status='draft').count()
     archived_posts = user_posts.filter(status='archived').count()
-    total_views = user_posts.aggregate(total=Count('views'))['total'] or 0
+    
+    # ✅ FIXED: Use Sum instead of Count for views
+    total_views = user_posts.aggregate(total=Sum('views'))['total'] or 0
+    
     total_comments = Comment.objects.filter(post__author=request.user).count()
     
     # Recent posts
@@ -358,7 +365,7 @@ def dashboard(request):
         ).annotate(
             month=TruncMonth('created_at')
         ).values('month').annotate(
-            views=Count('views')
+            views=Count('views')  # ✅ This is correct for chart data
         ).order_by('month'))
     except:
         pass
@@ -390,19 +397,19 @@ def dashboard(request):
 def like_post(request, slug):
     """Like or unlike a post"""
     post = get_object_or_404(Post, slug=slug)
+    
     if request.user in post.likes.all():
         post.likes.remove(request.user)
         liked = False
     else:
         post.likes.add(request.user)
         liked = True
-        # Create activity
-        Activity.objects.create(
-            user=request.user,
-            action='liked',
-            post=post
-        )
-    return JsonResponse({'liked': liked, 'total_likes': post.total_likes()})
+    
+    # ✅ Return both liked status and total likes
+    return JsonResponse({
+        'liked': liked,
+        'total_likes': post.total_likes()
+    })
 
 
 @login_required
@@ -410,19 +417,18 @@ def like_post(request, slug):
 def bookmark_post(request, slug):
     """Bookmark or unbookmark a post"""
     post = get_object_or_404(Post, slug=slug)
+    
     if request.user in post.bookmarks.all():
         post.bookmarks.remove(request.user)
         bookmarked = False
     else:
         post.bookmarks.add(request.user)
         bookmarked = True
-        # Create activity
-        Activity.objects.create(
-            user=request.user,
-            action='bookmarked',
-            post=post
-        )
-    return JsonResponse({'bookmarked': bookmarked})
+    
+    # ✅ Return bookmark status
+    return JsonResponse({
+        'bookmarked': bookmarked
+    })
 
 
 # ==================== SEARCH AND FILTER VIEWS ====================
@@ -529,12 +535,15 @@ def about(request):
 
 
 def contact(request):
-    """Contact page with form"""
+    """Contact page with form - sends to email AND WhatsApp"""
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
             contact = form.save()
             
+            # ============================================
+            # 1. SEND EMAIL (Existing functionality)
+            # ============================================
             subject = f"Contact Form: {contact.subject}"
             message = render_to_string('email/contact_email.html', {
                 'name': contact.name,
@@ -550,10 +559,44 @@ def contact(request):
                 html_message=message,
             )
             
-            messages.success(request, 'Your message was sent successfully! We\'ll get back to you soon.')
-            return redirect('blog:contact')
+            # ============================================
+            # 2. SEND TO WHATSAPP (NEW)
+            # ============================================
+            # Your WhatsApp number (with country code, NO + sign)
+            # Example: 919876543210 (India)
+            whatsapp_number = '919359462697'  # ⚠️ REPLACE WITH YOUR NUMBER
+            
+            # Create WhatsApp message
+            whatsapp_message = f"""📬 *New Contact Form Submission*
+
+👤 *Name:* {contact.name}
+📧 *Email:* {contact.email}
+📝 *Subject:* {contact.subject}
+💬 *Message:*
+{contact.message}
+
+📅 *Sent:* {contact.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+🌐 *From:* MyBlog Website"""
+
+            # Encode message for URL
+            encoded_message = urllib.parse.quote(whatsapp_message)
+            
+            # Create WhatsApp URL
+            whatsapp_url = f"https://wa.me/{whatsapp_number}?text={encoded_message}"
+            
+            # Store WhatsApp URL in session for redirect
+            request.session['whatsapp_url'] = whatsapp_url
+            
+            messages.success(request, 'Your message was sent successfully! Redirecting to WhatsApp...')
+            
+            # ============================================
+            # 3. REDIRECT TO WHATSAPP
+            # ============================================
+            return redirect(whatsapp_url)
+            
     else:
         form = ContactForm()
+    
     return render(request, 'blog/contact.html', {'form': form})
 
 
@@ -906,3 +949,10 @@ def save_draft(request):
         return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+def bookmarks_view(request):
+    """View all bookmarked posts"""
+    bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+    return render(request, 'blog/bookmarks.html', {'bookmark_posts': bookmark_posts})
+

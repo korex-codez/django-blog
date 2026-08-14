@@ -2,28 +2,423 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contact Form Submission - PixelPost</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #2563eb; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background: #f8fafc; }
-        .footer { text-align: center; padding: 20px; color: #64748b; font-size: 14px; }
+        /* Reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a202c;
+            background: #f8f9fc;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 0;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 35px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+        
+        .header h2 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        
+        .header .brand {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        
+        /* Content */
+        .content {
+            padding: 35px 30px;
+            background: #ffffff;
+        }
+        
+        .content .greeting {
+            font-size: 16px;
+            color: #1a202c;
+            margin-bottom: 20px;
+        }
+        
+        .content .greeting strong {
+            color: #667eea;
+        }
+        
+        /* Message Details */
+        .details-card {
+            background: #fafbff;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        
+        .details-card .detail-item {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .details-card .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .details-card .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 80px;
+            font-size: 13px;
+        }
+        
+        .details-card .detail-value {
+            color: #1a202c;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        
+        .details-card .detail-value a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .details-card .detail-value a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Message Box */
+        .message-box {
+            background: #f7f8ff;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-top: 8px;
+        }
+        
+        .message-box .message-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        
+        .message-box .message-content {
+            color: #1a202c;
+            font-size: 15px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        /* Meta Info */
+        .meta-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px 0 0;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 20px;
+        }
+        
+        .meta-info .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        
+        .meta-info .meta-item i {
+            font-style: normal;
+            font-size: 14px;
+        }
+        
+        /* Action Button */
+        .action-section {
+            text-align: center;
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
+        }
+        
+        /* Footer */
+        .footer {
+            background: #fafbff;
+            padding: 24px 30px;
+            text-align: center;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .footer .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .footer .footer-links a {
+            color: #a0aec0;
+            font-size: 13px;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        
+        .footer .footer-links a:hover {
+            color: #667eea;
+        }
+        
+        .footer .footer-divider {
+            width: 40px;
+            height: 2px;
+            background: #e2e8f0;
+            margin: 12px auto;
+            border: none;
+        }
+        
+        .footer p {
+            color: #a0aec0;
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .footer .footer-brand {
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                margin: 16px;
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 24px 20px;
+            }
+            
+            .header h2 {
+                font-size: 20px;
+            }
+            
+            .header .brand {
+                position: static;
+                display: block;
+                margin-top: 8px;
+                font-size: 11px;
+            }
+            
+            .content {
+                padding: 24px 20px;
+            }
+            
+            .details-card {
+                padding: 16px;
+            }
+            
+            .details-card .detail-item {
+                flex-direction: column;
+                padding: 6px 0;
+            }
+            
+            .details-card .detail-label {
+                min-width: auto;
+                font-size: 12px;
+            }
+            
+            .details-card .detail-value {
+                font-size: 13px;
+            }
+            
+            .message-box {
+                padding: 12px 16px;
+            }
+            
+            .message-box .message-content {
+                font-size: 14px;
+            }
+            
+            .btn {
+                padding: 10px 24px;
+                font-size: 13px;
+                width: 100%;
+            }
+            
+            .footer {
+                padding: 20px;
+            }
+            
+            .footer .footer-links {
+                gap: 12px;
+            }
+            
+            .footer .footer-links a {
+                font-size: 12px;
+            }
+            
+            .meta-info {
+                gap: 12px;
+            }
+            
+            .meta-info .meta-item {
+                font-size: 11px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .header-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+            
+            .content .greeting {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <div class="header">
-            <h2>New Contact Form Submission</h2>
+            <div class="brand">PixelPost</div>
+            <div class="header-icon">
+                <span>📬</span>
+            </div>
+            <h2>New Contact Message</h2>
+            <p>You've received a new message from your blog</p>
         </div>
+        
+        <!-- Content -->
         <div class="content">
-            <h3>Message Details:</h3>
-            <p><strong>Name:</strong> {{ name }}</p>
-            <p><strong>Email:</strong> {{ email }}</p>
-            <p><strong>Message:</strong></p>
-            <p>{{ message }}</p>
+            <p class="greeting">
+                <strong>Hello!</strong> You have received a new message from your contact form.
+            </p>
+            
+            <!-- Message Details -->
+            <div class="details-card">
+                <div class="detail-item">
+                    <span class="detail-label">👤 Name</span>
+                    <span class="detail-value"><strong>{{ name }}</strong></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">✉️ Email</span>
+                    <span class="detail-value">
+                        <a href="mailto:{{ email }}">{{ email }}</a>
+                    </span>
+                </div>
+                <div class="detail-item" style="border-bottom: none; padding-bottom: 0;">
+                    <span class="detail-label">📅 Sent</span>
+                    <span class="detail-value">{{ sent_at|default:"Today" }}</span>
+                </div>
+            </div>
+            
+            <!-- Message Content -->
+            <div class="message-box">
+                <div class="message-label">💬 Message</div>
+                <div class="message-content">{{ message }}</div>
+            </div>
+            
+            <!-- Meta Info -->
+            <div class="meta-info">
+                <span class="meta-item">
+                    <i>📌</i> From contact form
+                </span>
+                <span class="meta-item">
+                    <i>🕐</i> {{ sent_at|default:"Just now" }}
+                </span>
+                <span class="meta-item">
+                    <i>🔒</i> Secure delivery
+                </span>
+            </div>
+            
+            <!-- Action Button -->
+            <div class="action-section">
+                <a href="mailto:{{ email }}" class="btn">
+                    ✉️ Reply to {{ name }}
+                </a>
+            </div>
         </div>
+        
+        <!-- Footer -->
         <div class="footer">
-            <p>This message was sent from your blog's contact form.</p>
+            <div class="footer-links">
+                <a href="{{ site_url|default:'#' }}">Visit Blog</a>
+                <a href="{{ site_url|default:'#' }}/contact/">Contact</a>
+                <a href="{{ site_url|default:'#' }}/about/">About</a>
+                <a href="{{ site_url|default:'#' }}/dashboard/">Dashboard</a>
+            </div>
+            <hr class="footer-divider">
+            <p>
+                This message was sent from <span class="footer-brand">PixelPost</span> contact form.
+                <br>
+                &copy; {% now "Y" %} PixelPost. All rights reserved.
+            </p>
         </div>
     </div>
 </body>

@@ -149,3 +149,30 @@ def social_share_url(platform, url, title):
         'email': f'mailto:?subject={title}&body={url}',
     }
     return platforms.get(platform, '#')
+
+@register.filter(name='highlight')
+def highlight(text, query):
+    """
+    Highlight search query terms in text
+    """
+    if not text or not query:
+        return text
+    
+    # Split query into individual words
+    words = query.split()
+    
+    # Escape special regex characters
+    escaped_words = [re.escape(word) for word in words]
+    
+    # Create a pattern that matches any of the words (case insensitive)
+    pattern = '|'.join(escaped_words)
+    
+    # Replace matches with highlighted version
+    highlighted = re.sub(
+        f'({pattern})',
+        r'<span class="highlight">\1</span>',
+        text,
+        flags=re.IGNORECASE
+    )
+    
+    return mark_safe(highlighted)

@@ -12,7 +12,7 @@ sitemaps = {
     'static': StaticViewSitemap,
 }
 
-# Error handlers
+# Error handlers - These are the key lines!
 handler404 = 'blog.error_handlers.handler404'
 handler500 = 'blog.error_handlers.handler500'
 handler403 = 'blog.error_handlers.handler403'

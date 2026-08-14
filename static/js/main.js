@@ -286,90 +286,151 @@
             });
         });
 
-        // ============================================
-        // 12. LIKE BUTTON
-        // ============================================
+// ============================================
+// 12. LIKE BUTTON - jQuery Version
+// ============================================
+
+$('.btn-like').on('click', function() {
+    const slug = $(this).data('slug');
+    const $btn = $(this);
+    const $icon = $btn.find('i');
+    const $count = $('#likes-count, .likes-count');
+    
+    // ✅ Prevent double clicks
+    if ($btn.prop('disabled')) return;
+    $btn.prop('disabled', true);
+    
+    // ✅ Store current state
+    const wasLiked = $icon.hasClass('fas');
+    const currentCount = parseInt($count.text()) || 0;
+    
+    // ✅ UPDATE COUNT IMMEDIATELY (Optimistic)
+    $count.text(wasLiked ? currentCount - 1 : currentCount + 1);
+    
+    // ✅ Toggle icon immediately
+    $icon.toggleClass('fas far');
+    
+    // Heart beat animation
+    $btn.addClass('heart-beat');
+    setTimeout(() => $btn.removeClass('heart-beat'), 1000);
+
+    $.ajax({
+        url: '/post/like/' + slug + '/',
+        method: 'POST',
+        data: {
+            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+        },
+        success: function(response) {
+            // ✅ Sync with server
+            $count.text(response.total_likes);
+            
+            if (response.liked) {
+                $icon.removeClass('far').addClass('fas');
+                $btn.addClass('active');
+            } else {
+                $icon.removeClass('fas').addClass('far');
+                $btn.removeClass('active');
+            }
+            
+            $btn.prop('disabled', false);
+        },
+        error: function() {
+            // ❌ Revert on error
+            $count.text(currentCount);
+            if (wasLiked) {
+                $icon.removeClass('far').addClass('fas');
+            } else {
+                $icon.removeClass('fas').addClass('far');
+            }
+            showToast('Error', 'Failed to like the post.', 'error');
+            $btn.prop('disabled', false);
+        }
+    });
+});
+
+// ============================================
+// 13. BOOKMARK BUTTON - WITH OPTIMISTIC UPDATE
+// ============================================
+
+document.querySelectorAll('.btn-bookmark').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const slug = this.dataset.slug;
+        const icon = this.querySelector('i');
         
-        document.querySelectorAll('.btn-like').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const slug = this.dataset.slug;
-                const icon = this.querySelector('i');
-                const countEl = document.querySelector('#likes-count, .likes-count');
-                const wasLiked = icon.classList.contains('fas');
-                
-                icon.classList.toggle('fas');
-                icon.classList.toggle('far');
-                if (countEl) {
-                    let current = parseInt(countEl.textContent) || 0;
-                    countEl.textContent = wasLiked ? current - 1 : current + 1;
-                }
-                
-                this.classList.add('heart-beat');
-                setTimeout(() => this.classList.remove('heart-beat'), 1000);
-
-                fetch('/post/like/' + slug + '/', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (countEl) countEl.textContent = data.total_likes;
-                    if (data.liked) {
-                        icon.classList.add('fas');
-                        this.classList.add('active');
-                    } else {
-                        icon.classList.remove('fas');
-                        this.classList.remove('active');
-                    }
-                })
-                .catch(() => {
-                    icon.classList.toggle('fas');
-                    icon.classList.toggle('far');
-                    if (countEl) {
-                        let current = parseInt(countEl.textContent) || 0;
-                        countEl.textContent = wasLiked ? current + 1 : current - 1;
-                    }
-                    showToast('Error', 'Failed to like the post.', 'error');
-                });
-            });
-        });
-
-        // ============================================
-        // 13. BOOKMARK BUTTON
-        // ============================================
+        // ✅ Prevent double clicks
+        if (this.disabled) return;
+        this.disabled = true;
         
-        document.querySelectorAll('.btn-bookmark').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const slug = this.dataset.slug;
-                const icon = this.querySelector('i');
-                const wasBookmarked = icon.classList.contains('fas');
-                
-                icon.classList.toggle('fas');
-                icon.classList.toggle('far');
-                
-                this.classList.add('scale-up');
-                setTimeout(() => this.classList.remove('scale-up'), 400);
+        // ✅ Store current state
+        const wasBookmarked = icon.classList.contains('fas');
+        
+        // ✅ Toggle icon immediately (Optimistic)
+        icon.classList.toggle('fas');
+        icon.classList.toggle('far');
+        
+        // Scale animation
+        this.classList.add('scale-up');
+        setTimeout(() => this.classList.remove('scale-up'), 400);
 
-                fetch('/post/bookmark/' + slug + '/', {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value }
-                })
-                .then(() => {
-                    if (icon.classList.contains('fas')) {
-                        showToast('Success!', 'Post bookmarked!', 'success');
-                        this.classList.add('active');
-                    } else {
-                        showToast('Info', 'Bookmark removed.', 'info');
-                        this.classList.remove('active');
-                    }
-                })
-                .catch(() => {
-                    icon.classList.toggle('fas');
-                    icon.classList.toggle('far');
-                    showToast('Error', 'Failed to bookmark.', 'error');
-                });
-            });
+        fetch('/post/bookmark/' + slug + '/', {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // ✅ Sync with server
+            if (data.bookmarked) {
+                icon.classList.add('fas');
+                icon.classList.remove('far');
+                this.classList.add('active');
+                showToast('Success!', 'Post bookmarked!', 'success');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                this.classList.remove('active');
+                showToast('Info', 'Bookmark removed.', 'info');
+            }
+            this.disabled = false;
+        })
+        .catch(() => {
+            // ❌ Revert on error
+            if (wasBookmarked) {
+                icon.classList.add('fas');
+                icon.classList.remove('far');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+            }
+            showToast('Error', 'Failed to bookmark.', 'error');
+            this.disabled = false;
         });
+    });
+});
+
+// Remove bookmark from bookmarks page
+document.querySelectorAll('.btn-remove-bookmark').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const slug = this.dataset.slug;
+        const card = this.closest('.col-md-4');
+        
+        fetch('/post/bookmark/' + slug + '/', {
+            method: 'POST',
+            headers: { 
+                'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value 
+            }
+        })
+        .then(response => response.json())
+        .then(() => {
+            card.remove();
+            showToast('Info', 'Bookmark removed.', 'info');
+        })
+        .catch(() => {
+            showToast('Error', 'Failed to remove bookmark.', 'error');
+        });
+    });
+});
 
         // ============================================
         // 14. COMMENT REPLY

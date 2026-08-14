@@ -7,26 +7,39 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-body p-4 text-center">
-                    <i class="fas fa-envelope-open-text fa-4x text-danger mb-3"></i>
-                    <h3>Unsubscribe from Newsletter</h3>
-                    <p class="text-muted">We're sorry to see you go. Enter your email to unsubscribe.</p>
+            <div class="card shadow-lg unsubscribe-card">
+                <div class="card-body p-5 text-center">
+                    <div class="unsubscribe-icon-wrapper mb-4">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
                     
-                    <form method="post" class="mt-4">
+                    <h3 class="fw-bold mb-2">Unsubscribe from Newsletter</h3>
+                    <p class="text-muted mb-4">We're sorry to see you go. Enter your email to unsubscribe.</p>
+                    
+                    <form method="post" class="mt-3">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" name="email" class="form-control" placeholder="Enter your email" required autocomplete="email">
+                            </div>
+                            {% if form.email.errors %}
+                            <div class="invalid-feedback d-block text-start">
+                                {{ form.email.errors }}
+                            </div>
+                            {% endif %}
                         </div>
-                        <button type="submit" class="btn btn-danger w-100">
+                        <button type="submit" class="btn btn-danger w-100 btn-hover-glow py-2">
                             <i class="fas fa-times me-2"></i>Unsubscribe
                         </button>
                     </form>
                     
                     <hr class="my-4">
                     
-                    <p class="text-muted">
-                        <a href="{% url 'blog:home' %}" class="text-decoration-none">
+                    <p class="text-muted mb-0">
+                        <a href="{% url 'blog:home' %}" class="text-decoration-none fw-semibold">
                             <i class="fas fa-arrow-left me-1"></i>Return to Home
                         </a>
                     </p>
@@ -35,4 +48,163 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Unsubscribe specific styles */
+    .unsubscribe-card {
+        background: #ffffff;
+        border: 1px solid #f0f0f0;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+    
+    .unsubscribe-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    .unsubscribe-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(245, 92, 108, 0.08);
+        font-size: 2.5rem;
+        color: #f55c6c;
+        transition: all 0.3s ease;
+    }
+    
+    .unsubscribe-icon-wrapper:hover {
+        transform: scale(1.05) rotate(5deg);
+        background: rgba(245, 92, 108, 0.12);
+    }
+    
+    .unsubscribe-card h3 {
+        font-size: 1.5rem;
+        color: #1a202c;
+    }
+    
+    /* Form Controls */
+    .input-group {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+        background: #ffffff;
+    }
+    
+    .input-group:focus-within {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.08);
+    }
+    
+    .input-group .input-group-text {
+        background: transparent;
+        border: none;
+        color: #a0aec0;
+        padding: 0.625rem 0.75rem 0.625rem 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .input-group .form-control {
+        border: none;
+        padding: 0.625rem 1rem 0.625rem 0;
+        background: transparent;
+        font-size: 0.95rem;
+        color: #1a202c;
+    }
+    
+    .input-group .form-control:focus {
+        box-shadow: none;
+        background: transparent;
+    }
+    
+    .input-group .form-control::placeholder {
+        color: #a0aec0;
+    }
+    
+    .form-control.is-invalid {
+        border-color: #f55c6c;
+    }
+    
+    .invalid-feedback {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        color: #f55c6c;
+    }
+    
+    /* Button */
+    .btn {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.625rem 1.5rem;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        letter-spacing: 0.01em;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #fc8181 0%, #f55c6c 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(245, 92, 108, 0.3);
+        color: white;
+    }
+    
+    .btn-hover-glow {
+        transition: all 0.3s ease;
+    }
+    
+    .btn-hover-glow:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #f0f0f0;
+        opacity: 1;
+    }
+    
+    /* Links */
+    a {
+        color: #667eea;
+        transition: color 0.2s ease;
+    }
+    
+    a:hover {
+        color: #5a67d8;
+    }
+    
+    .fw-semibold {
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .unsubscribe-card .card-body.p-5 {
+            padding: 2rem !important;
+        }
+        
+        .unsubscribe-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+        
+        .unsubscribe-card h3 {
+            font-size: 1.25rem;
+        }
+        
+        .input-group .form-control {
+            font-size: 0.9rem;
+        }
+    }
+</style>
 {% endblock %}

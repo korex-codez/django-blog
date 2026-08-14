@@ -9,62 +9,98 @@
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="mb-4">
-                <h2>
-                    <i class="fas fa-folder-open me-2"></i>
-                    Category: {{ category.name }}
-                </h2>
-                {% if category.description %}
-                <p class="text-muted">{{ category.description }}</p>
-                {% endif %}
-                <p class="text-muted">Found {{ posts.paginator.count }} post{% if posts.paginator.count != 1 %}s{% endif %}</p>
+                <div class="d-flex align-items-start">
+                    <div class="category-header-icon me-3">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1">
+                            {{ category.name }}
+                        </h2>
+                        {% if category.description %}
+                        <p class="text-muted mb-1">{{ category.description }}</p>
+                        {% endif %}
+                        <p class="text-muted small">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Found {{ posts.paginator.count }} post{% if posts.paginator.count != 1 %}s{% endif %}
+                            {% if posts.paginator.count > 0 %}
+                            <span class="mx-1">•</span>
+                            <i class="fas fa-clock me-1"></i>
+                            Last updated {{ posts.0.created_at|naturaltime }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
             </div>
             
             {% if posts %}
-            <div class="row">
+            <div class="posts-list">
                 {% for post in posts %}
-                <div class="col-12 mb-4 post-item">
-                    <div class="card shadow-sm hover-card">
-                        <div class="row g-0">
-                            {% if post.featured_image %}
-                            <div class="col-md-4">
-                                <img src="{{ post.featured_image.url }}" class="img-fluid rounded-start" 
-                                     alt="{{ post.title }}" style="height:200px;width:100%;object-fit:cover;">
+                <article class="post-card card card-hover-lift mb-4">
+                    <div class="row g-0">
+                        {% if post.featured_image %}
+                        <div class="col-md-4 post-image-wrapper">
+                            <img src="{{ post.featured_image.url }}" class="img-fluid rounded-start post-image" 
+                                 alt="{{ post.title }}" loading="lazy">
+                            {% if post.featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i> Featured
                             </div>
-                            <div class="col-md-8">
-                                <div class="card-body">
-                            {% else %}
-                            <div class="col-12">
-                                <div class="card-body">
                             {% endif %}
-                                    <div class="mb-2">
-                                        {% for tag in post.tags.all|slice:":3" %}
-                                        <span class="badge bg-secondary">#{{ tag.name }}</span>
-                                        {% endfor %}
-                                    </div>
-                                    <h5 class="card-title">
-                                        <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none">
-                                            {{ post.title }}
-                                        </a>
-                                    </h5>
-                                    <p class="card-text text-muted">{{ post.excerpt|truncatewords:30 }}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <small class="text-muted">
-                                                <i class="far fa-user me-1"></i>{{ post.author.username }}
-                                            </small>
-                                            <small class="text-muted ms-3">
-                                                <i class="far fa-calendar-alt me-1"></i>{{ post.created_at|date:"M d, Y" }}
-                                            </small>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                        {% else %}
+                        <div class="col-12">
+                            <div class="card-body">
+                        {% endif %}
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    {% for tag in post.tags.all|slice:":3" %}
+                                    <span class="badge tag-badge">
+                                        <i class="fas fa-hashtag me-1"></i>{{ tag.name }}
+                                    </span>
+                                    {% endfor %}
+                                    {% if not post.tags.all %}
+                                    <span class="badge tag-badge">
+                                        <i class="fas fa-tag me-1"></i>{{ post.category.name }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <h5 class="card-title fw-bold">
+                                    <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none text-dark stretched-link-hover">
+                                        {{ post.title }}
+                                    </a>
+                                </h5>
+                                
+                                <p class="card-text text-muted post-excerpt">{{ post.excerpt|truncatewords:30 }}</p>
+                                
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mt-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="d-flex align-items-center">
+                                            {% if post.author.profile.avatar and post.author.profile.avatar.url %}
+                                            <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}" 
+                                                 class="rounded-circle author-avatar-sm" width="28" height="28">
+                                            {% else %}
+                                            <i class="fas fa-user-circle fa-lg text-muted"></i>
+                                            {% endif %}
+                                            <small class="text-muted ms-2">{{ post.author.username }}</small>
                                         </div>
-                                        <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-primary btn-sm">
-                                            Read More <i class="fas fa-arrow-right ms-1"></i>
-                                        </a>
+                                        <small class="text-muted">
+                                            <i class="far fa-calendar-alt me-1"></i>{{ post.created_at|date:"M d, Y" }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="far fa-eye me-1"></i>{{ post.views|intcomma }}
+                                        </small>
                                     </div>
+                                    <a href="{% url 'blog:post_detail' post.slug %}" class="btn btn-outline-primary btn-sm btn-read">
+                                        Read More <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </article>
                 {% endfor %}
             </div>
             
@@ -74,9 +110,13 @@
                 <ul class="pagination justify-content-center">
                     {% if posts.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ posts.previous_page_number }}">
+                        <a class="page-link" href="?page={{ posts.previous_page_number }}" aria-label="Previous">
                             <i class="fas fa-chevron-left"></i>
                         </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-chevron-left"></i></span>
                     </li>
                     {% endif %}
                     
@@ -92,9 +132,13 @@
                     
                     {% if posts.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ posts.next_page_number }}">
+                        <a class="page-link" href="?page={{ posts.next_page_number }}" aria-label="Next">
                             <i class="fas fa-chevron-right"></i>
                         </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-chevron-right"></i></span>
                     </li>
                     {% endif %}
                 </ul>
@@ -102,11 +146,13 @@
             {% endif %}
             
             {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
-                <h4>No posts in this category</h4>
-                <p class="text-muted">Check back later for new content.</p>
-                <a href="{% url 'blog:home' %}" class="btn btn-primary">
+            <div class="empty-state text-center py-5">
+                <div class="empty-state-icon-wrapper mb-4">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h4 class="fw-bold mb-2">No posts in this category</h4>
+                <p class="text-muted mb-4">Check back later for new content in this category.</p>
+                <a href="{% url 'blog:home' %}" class="btn btn-primary btn-hover-glow">
                     <i class="fas fa-home me-2"></i>Back to Home
                 </a>
             </div>
@@ -114,4 +160,268 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Category posts specific styles */
+    .category-header-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        border-radius: 14px;
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        font-size: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .category-header-icon:hover {
+        transform: scale(1.05) rotate(5deg);
+        background: rgba(102, 126, 234, 0.15);
+    }
+    
+    .post-card {
+        background: #ffffff;
+        border: 1px solid #f0f0f0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    
+    .post-card:hover {
+        border-color: rgba(102, 126, 234, 0.15);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+    
+    .card-hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover-lift:hover {
+        transform: translateY(-4px);
+    }
+    
+    .post-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+    }
+    
+    .post-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .post-card:hover .post-image {
+        transform: scale(1.03);
+    }
+    
+    .featured-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: linear-gradient(135deg, #f6ad55, #ed8936);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        box-shadow: 0 2px 8px rgba(237, 137, 54, 0.3);
+    }
+    
+    .featured-badge i {
+        margin-right: 4px;
+    }
+    
+    .tag-badge {
+        background: rgba(102, 126, 234, 0.06);
+        color: #667eea;
+        font-weight: 500;
+        padding: 0.25rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+    }
+    
+    .tag-badge:hover {
+        background: rgba(102, 126, 234, 0.12);
+        transform: translateY(-1px);
+    }
+    
+    .card-title {
+        font-size: 1.15rem;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stretched-link-hover {
+        transition: color 0.2s ease;
+    }
+    
+    .stretched-link-hover:hover {
+        color: #667eea !important;
+    }
+    
+    .post-excerpt {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #4a5568;
+    }
+    
+    .author-avatar-sm {
+        border: 2px solid #f0f0f0;
+        object-fit: cover;
+    }
+    
+    .btn-read {
+        border-radius: 8px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        border-color: #e2e8f0;
+        color: #4a5568;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .btn-read:hover {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+        transform: translateX(2px);
+    }
+    
+    .btn-read:hover i {
+        transform: translateX(2px);
+        transition: transform 0.3s ease;
+    }
+    
+    /* Empty state */
+    .empty-state {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid #f0f0f0;
+        padding: 3rem 2rem;
+    }
+    
+    .empty-state-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.06);
+        font-size: 2.5rem;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state-icon-wrapper:hover {
+        transform: scale(1.05) rotate(5deg);
+        background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn-hover-glow {
+        transition: all 0.3s ease;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+    }
+    
+    .btn-hover-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        color: white;
+    }
+    
+    /* Pagination */
+    .pagination {
+        gap: 4px;
+    }
+    
+    .page-link {
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        color: #4a5568;
+        font-weight: 500;
+        background: transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .page-link:hover {
+        background: rgba(102, 126, 234, 0.08);
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+    
+    .page-item.disabled .page-link {
+        color: #cbd5e0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .page-item:first-child .page-link,
+    .page-item:last-child .page-link {
+        border-radius: 8px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .category-header-icon {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            font-size: 1.25rem;
+        }
+        
+        .post-image-wrapper {
+            min-height: 160px;
+        }
+        
+        .post-image {
+            height: 160px;
+        }
+        
+        .post-card .card-body .d-flex.flex-wrap {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+        
+        .post-card .card-body .d-flex.flex-wrap .d-flex {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .post-card .card-body .d-flex.flex-wrap .btn {
+            align-self: flex-start;
+        }
+        
+        .empty-state {
+            padding: 2rem 1.5rem;
+        }
+    }
+</style>
 {% endblock %}
