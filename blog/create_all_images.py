@@ -65,7 +65,7 @@ def create_og_image():
                       fill=(30, 41, 59), outline=(51, 65, 85))
     
     os.makedirs('static/img', exist_ok=True)
-    img.save('static/img/og-image.jpg', 'JPEG', quality=95)
+    img.save('static/img/create_og_image.html', 'JPEG', quality=95)
     print("✅ OG Image created!")
 
 def create_default_avatar():
@@ -103,7 +103,7 @@ def main():
     print("\n📁 Image locations:")
     print("   - static/img/favicon.ico")
     print("   - static/img/hero-illustration.svg")
-    print("   - static/img/og-image.jpg")
+    print("   - static/img/create_og_image.html")
     print("   - media/avatars/default.jpg")
 
 if __name__ == '__main__':

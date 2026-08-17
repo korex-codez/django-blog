@@ -72,7 +72,7 @@ def main():
     print("✅ All images created successfully!")
     print("\n📁 Image locations:")
     print("   - media/avatars/default.jpg")
-    print("   - static/img/og-image.jpg")
+    print("   - static/img/create_og_image.html")
 
 if __name__ == '__main__':
     main()
