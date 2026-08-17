@@ -15,7 +15,7 @@
     <!-- Open Graph Tags -->
     <meta property="og:title" content="{% block og_title %}PixelPost - Professional Blog{% endblock %}">
     <meta property="og:description" content="{% block og_description %}A professional blog about technology and development{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{% load static %}{% static 'img/og-image.jpg' %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% load static %}{% static 'img/create_og_image.html' %}{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="PixelPost">
@@ -24,7 +24,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}PixelPost{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}Professional blog about technology{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}{% load static %}{% static 'img/og-image.jpg' %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% load static %}{% static 'img/image.jpg' %}{% endblock %}">
     
     <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
