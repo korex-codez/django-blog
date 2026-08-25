@@ -21,7 +21,7 @@ def handler500(request):
     try:
         return render(request, 'blog/500.html', status=500)
     except Exception:
-        return render(request, '500.html', status=500)
+        return render(request, 'blog/500.html', status=500)
 
 def handler403(request, exception):
     """Custom 403 error handler"""
