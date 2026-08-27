@@ -8,9 +8,7 @@
 
 {% block og_title %}{{ post.title }}{% endblock %}
 {% block og_description %}{{ post.excerpt|truncatewords:30 }}{% endblock %}
-{% if post.featured_image and post.featured_image.url %}
-{% block og_image %}{{ post.featured_image.url }}{% endblock %}
-{% endif %}
+{% block og_image %}{% if post.featured_image %}{{ post.featured_image.url }}{% endif %}{% endblock %}
 
 {% block content %}
 <article class="post-detail py-4">

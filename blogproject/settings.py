@@ -90,6 +90,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     "blog.middleware.ActiveUserMiddleware",
+    "blog.middleware.SecurityHeadersMiddleware",
 ]
 
 
