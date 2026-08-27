@@ -45,6 +45,10 @@ urlpatterns = [
     # path('api/newsletter/subscribe/', views.newsletter_subscribe_api, name='newsletter_subscribe_api'),
     
     # ✅ API Endpoints for enhancements
+    path('api/search-autocomplete/', views.search_autocomplete, name='search_autocomplete'),
+    path('api/post/<slug:slug>/stats/', views.post_stats, name='post_stats_api'),
+    path('api/posts/recent/', views.recent_posts_api, name='recent_posts_api'),
+    path('api/posts/popular/', views.popular_posts_api, name='popular_posts_api'),
     path('api/tag-autocomplete/', views.tag_autocomplete, name='tag_autocomplete'),
     path('api/save-draft/', views.save_draft, name='save_draft'),
     
