@@ -34,9 +34,11 @@ def home(request):
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +73,9 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        return Post.objects.filter(
+            status='published'
+        ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
 
 
 def post_detail(request, slug):
@@ -224,7 +228,9 @@ def profile_view(request, username=None):
         profile_user = request.user
     
     # Get user's published posts
-    user_posts = Post.objects.filter(author=profile_user, status='published')
+    user_posts = Post.objects.filter(
+        author=profile_user, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     paginator = Paginator(user_posts, 6)
     page = request.GET.get('page')
     try:
@@ -238,7 +244,9 @@ def profile_view(request, username=None):
     bookmark_posts = []
     bookmark_count = 0
     if request.user == profile_user:
-        bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+        bookmark_posts = Post.objects.filter(
+            bookmarks=request.user, status='published'
+        ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
         bookmark_count = bookmark_posts.count()
     
     context = {
@@ -439,7 +447,9 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    posts = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     
     if query:
         posts = posts.filter(
@@ -488,7 +498,9 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    posts = Post.objects.filter(
+        category=category, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +521,9 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    posts = Post.objects.filter(
+        tags=tag, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -953,6 +967,8 @@ def save_draft(request):
 @login_required
 def bookmarks_view(request):
     """View all bookmarked posts"""
-    bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+    bookmark_posts = Post.objects.filter(
+        bookmarks=request.user, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True))
     return render(request, 'blog/bookmarks.html', {'bookmark_posts': bookmark_posts})
 
