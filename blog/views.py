@@ -31,12 +31,14 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimize query with select_related for ForeignKeys (author, category) to prevent N+1 queries during rendering
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Optimize query with select_related for ForeignKeys (author, category) and prefetch_related for M2M (tags)
+    posts_list = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +73,8 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Optimize queryset to avoid N+1 database queries when rendering author, category, and tags
+        return Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
 
 
 def post_detail(request, slug):

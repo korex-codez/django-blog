@@ -1,0 +1,3 @@
+## 2026-09-01 - Optimizing Django Blog Querysets with select_related & prefetch_related
+**Learning:** The home page and post list views render `post.author.username`, `post.category.name`, and `post.tags` inside template loops, causing N+1 SQL queries for each post rendered. Using `select_related('author', 'category')` joins ForeignKey relations in a single query while `prefetch_related('tags')` fetches all M2M tags in a single batch query, cutting query count significantly (from 24 to 12 queries on the home view with 6 posts).
+**Action:** Always prefetch M2M tags and select_related foreign keys when listing Post models rendered in templates.
