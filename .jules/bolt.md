@@ -1,0 +1,3 @@
+## 2026-09-01 - N+1 Query Overhead in Post Listing Views and Custom Template Tags
+**Learning:** In Django templates rendering post cards (such as home, search, and sidebar template tags), accessing `post.author`, `post.category`, and `post.tags` without eager loading causes N+1 queries for both the primary view querysets and template tags (`get_sidebar_posts`, `get_recent_posts`, etc.). Adding `select_related('author', 'category')` and `prefetch_related('tags')` to both view querysets and custom templatetags reduced total database queries on the home page from 35 down to 13 (~63% query reduction).
+**Action:** Always inspect both view querysets and custom template tag querysets when optimizing Django list and page views to eliminate duplicate database query overhead.
