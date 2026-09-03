@@ -1,0 +1,3 @@
+## 2026-09-03 - N+1 Query Elimination on Model Methods via Django Annotations
+**Learning:** Using `select_related` and `prefetch_related` on querysets fetched in views prevents N+1 foreign key lookups, but model helper methods (like `post.total_likes()`) that call `.likes.count()` will still trigger N+1 query execution unless supported by `.annotate(like_count=Count('likes'))` and checking `hasattr(self, 'like_count')` within the model method.
+**Action:** When rendering list views with ManyToMany counts, annotate the count on the QuerySet and update the model method to return the annotated attribute when present.

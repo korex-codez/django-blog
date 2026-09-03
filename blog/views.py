@@ -31,12 +31,18 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: select_related('author', 'category') eliminates N+1 foreign key lookups
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Optimization: select_related, prefetch_related, and annotate prevent N+1 queries for author, category, tags, and likes count
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    )
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
