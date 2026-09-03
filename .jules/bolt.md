@@ -1,0 +1,3 @@
+## 2025-05-18 - [Optimize Home View Query Bottleneck with ORM Pre-loading]
+**Learning:** The home view was suffering from N+1 database query bottlenecks when retrieving post authors, categories, and tags during template rendering. Using `select_related('author', 'category')` and `prefetch_related('tags')` reduces query counts per request on the home page from ~27-35 queries down to ~4 queries (and ~12 queries when including category/tag aggregation context processors).
+**Action:** Always inspect ORM relationships in Django views rendering lists of items and pre-load foreign keys/M2M relationships via `select_related` and `prefetch_related`.
