@@ -1,0 +1,3 @@
+## 2026-09-04 - Model helper methods calling M2M .count() cause hidden N+1 queries in template renders
+**Learning:** Calling model helper methods like `post.total_likes()` (which executes `self.likes.count()`) inside template loops creates hidden N+1 database queries, even when main relations are fetched. Annotating the count on the queryset (e.g. `.annotate(like_count=Count('likes'))`) and checking `hasattr(self, 'like_count')` inside the model method transparently uses the annotated value when present without breaking existing method callers.
+**Action:** Always check if model helper methods perform DB queries when called in loops, and design model methods to check for pre-annotated attributes before falling back to DB queries.
