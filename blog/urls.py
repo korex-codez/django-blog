@@ -47,6 +47,10 @@ urlpatterns = [
     # ✅ API Endpoints for enhancements
     path('api/tag-autocomplete/', views.tag_autocomplete, name='tag_autocomplete'),
     path('api/save-draft/', views.save_draft, name='save_draft'),
+    path('api/search-autocomplete/', views.search_autocomplete, name='search_autocomplete'),
+    path('api/post-stats/<slug:slug>/', views.post_stats, name='post_stats_api'),
+    path('api/recent-posts/', views.recent_posts_api, name='recent_posts_api'),
+    path('api/popular-posts/', views.popular_posts_api, name='popular_posts_api'),
     
     # Password Reset
     path('password-reset/',

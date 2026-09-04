@@ -59,7 +59,7 @@ class Post(models.Model):
     featured_image = models.ImageField(upload_to='posts/%Y/%m/%d/', blank=True, null=True)
     
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
     
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
@@ -116,6 +116,9 @@ class Post(models.Model):
         return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
     def total_likes(self):
+        # Performance Optimization: Return annotated like_count if present to prevent N+1 queries in templates
+        if hasattr(self, 'like_count'):
+            return self.like_count
         return self.likes.count()
 
     def total_comments(self):
