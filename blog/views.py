@@ -31,12 +31,18 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimized: select_related for author and category to prevent N+1 queries
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Optimized: select_related, prefetch_related, and annotate like_count to eliminate N+1 queries during card rendering
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -46,19 +52,10 @@ def home(request):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
     
-    categories = Category.objects.annotate(
-        post_count=Count('posts', filter=Q(posts__status='published'))
-    ).filter(post_count__gt=0)[:8]
-    
-    tags = Tag.objects.annotate(
-        post_count=Count('posts', filter=Q(posts__status='published'))
-    ).filter(post_count__gt=0)[:15]
-    
+    # Categories and tags are provided by base_context context processor globally
     context = {
         'featured_posts': featured_posts,
         'posts': posts,
-        'categories': categories,
-        'tags': tags,
     }
     return render(request, 'blog/home.html', context)
 
@@ -71,7 +68,11 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        return Post.objects.filter(
+            status='published'
+        ).select_related('author', 'category').prefetch_related('tags').annotate(
+            like_count=Count('likes')
+        ).order_by('-created_at')
 
 
 def post_detail(request, slug):
@@ -439,7 +440,11 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    posts = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
     
     if query:
         posts = posts.filter(
@@ -456,11 +461,11 @@ def search_posts(request):
     
     # Sorting
     if sort_by == 'popular':
-        posts = posts.order_by('-views')
+        posts = posts.order_by('-views', '-id')
     elif sort_by == 'oldest':
-        posts = posts.order_by('created_at')
+        posts = posts.order_by('created_at', 'id')
     else:  # recent
-        posts = posts.order_by('-created_at')
+        posts = posts.order_by('-created_at', '-id')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -488,7 +493,12 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    posts = Post.objects.filter(
+        category=category,
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +519,12 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    posts = Post.objects.filter(
+        tags=tag,
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
