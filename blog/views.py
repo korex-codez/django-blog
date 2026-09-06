@@ -31,12 +31,17 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimize query performance: Use select_related and prefetch_related
+    # to fetch foreign key relations (author, category) and m2m relations (tags)
+    # in bulk instead of generating N+1 queries when rendering post cards in templates.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
