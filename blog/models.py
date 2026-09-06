@@ -116,6 +116,10 @@ class Post(models.Model):
         return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
     def total_likes(self):
+        # Optimization: Use annotated 'like_count' if precomputed by QuerySet annotate()
+        # to avoid N+1 database queries when rendering post cards in templates.
+        if hasattr(self, 'like_count'):
+            return self.like_count
         return self.likes.count()
 
     def total_comments(self):
