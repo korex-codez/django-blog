@@ -1,0 +1,3 @@
+## 2026-09-07 - QuerySet Annotation and Select Related in Django
+**Learning:** Using `Count('posts', filter=Q(posts__status='published'))` via QuerySet `.annotate()` in API endpoints like `categories_api` and `tags_api` avoids N+1 queries by executing the count calculation directly in the database. Similarly, adding `select_related('author', 'category')` and `prefetch_related('tags')` to post list queries reduces 1 + 3*M database queries down to 2 queries per page request.
+**Action:** Always check Django API endpoints and template views for loop-based query evaluations and replace them with `annotate()`, `select_related()`, and `prefetch_related()`.
