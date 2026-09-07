@@ -8,12 +8,13 @@ from .models import Post, Comment, Profile, Contact, Newsletter, Category, Tag
 
 
 class PostForm(forms.ModelForm):
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = Post
         fields = ['title', 'category', 'tags', 'content', 'excerpt', 'featured_image', 'status', 'featured']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter post title'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
             'tags': forms.SelectMultiple(attrs={'class': 'form-control', 'size': 5}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10, 'placeholder': 'Write your post content here...'}),
             'excerpt': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description of your post'}),
@@ -35,12 +36,13 @@ class PostForm(forms.ModelForm):
 
 
 class EditPostForm(forms.ModelForm):
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, widget=forms.Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = Post
         fields = ['title', 'category', 'tags', 'content', 'excerpt', 'featured_image', 'status', 'featured']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
             'tags': forms.SelectMultiple(attrs={'class': 'form-control', 'size': 5}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
             'excerpt': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),

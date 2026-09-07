@@ -30,13 +30,18 @@ from .forms import (
 # ==================== CORE VIEWS ====================
 
 def home(request):
-    """Home page with featured posts, latest posts, categories, and tags"""
+    """
+    Home page with featured posts, latest posts, categories, and tags.
+    OPTIMIZATION: Uses select_related for ForeignKeys (author, category) and prefetch_related for M2M (tags)
+    to prevent N+1 database queries when rendering post cards in home.html.
+    Performance Impact: Reduces queries from 1 + 3*M down to 2 database queries for post lists.
+    """
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -64,14 +69,17 @@ def home(request):
 
 
 class PostListView(ListView):
-    """List view for all published posts"""
+    """
+    List view for all published posts.
+    OPTIMIZATION: Uses select_related for author/category and prefetch_related for tags to avoid N+1 queries.
+    """
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        return Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
 
 
 def post_detail(request, slug):
@@ -439,7 +447,8 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    # OPTIMIZATION: Prefetch related author, category, and tags to eliminate N+1 queries in search_results.html
+    posts = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     
     if query:
         posts = posts.filter(
@@ -488,7 +497,8 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    # OPTIMIZATION: Prefetch related fields to eliminate N+1 queries
+    posts = Post.objects.filter(category=category, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +519,8 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    # OPTIMIZATION: Prefetch related fields to eliminate N+1 queries
+    posts = Post.objects.filter(tags=tag, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -751,32 +762,40 @@ def popular_posts_api(request):
 
 
 def categories_api(request):
-    """API endpoint for categories"""
-    categories = Category.objects.filter(
-        posts__status='published'
-    ).distinct()
+    """
+    API endpoint for categories.
+    OPTIMIZATION: Annotates post_count directly in the QuerySet to avoid N+1 queries.
+    Performance Impact: Reduces query count from N+1 queries down to 1 single database query.
+    """
+    categories = Category.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': cat.id,
         'name': cat.name,
         'slug': cat.slug,
-        'post_count': cat.posts.filter(status='published').count(),
+        'post_count': cat.post_count,
     } for cat in categories]
     
     return JsonResponse(data, safe=False)
 
 
 def tags_api(request):
-    """API endpoint for tags"""
-    tags = Tag.objects.filter(
-        posts__status='published'
-    ).distinct()
+    """
+    API endpoint for tags.
+    OPTIMIZATION: Annotates post_count directly in the QuerySet to avoid N+1 queries.
+    Performance Impact: Reduces query count from N+1 queries down to 1 single database query.
+    """
+    tags = Tag.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': tag.id,
         'name': tag.name,
         'slug': tag.slug,
-        'post_count': tag.posts.filter(status='published').count(),
+        'post_count': tag.post_count,
     } for tag in tags]
     
     return JsonResponse(data, safe=False)
