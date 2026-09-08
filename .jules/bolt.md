@@ -1,0 +1,3 @@
+## 2026-09-08 - Eliminate N+1 Database Queries in Django Views
+**Learning:** In Django template rendering, accessing relational fields on model instances (e.g., `post.author`, `post.category`, and iterating `post.tags.all`) triggers separate SQL queries for every item if not eager-loaded. Using `select_related('author', 'category')` for ForeignKeys and `prefetch_related('tags')` for ManyToMany fields reduces query count from ~25+ queries per list page down to ~5 queries (~80% reduction).
+**Action:** Always inspect template loops for FK/M2M accesses and chain `select_related` / `prefetch_related` on view QuerySets.
