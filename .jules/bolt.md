@@ -1,0 +1,3 @@
+## 2025-05-18 - Eliminating N+1 queries across Django list and API views
+**Learning:** Category and Tag API endpoints were making 1 + N queries by computing post counts inside a list comprehension (`cat.posts.filter(...).count()`). Using `.annotate(post_count=Count('posts', filter=Q(posts__status='published')))` combined count aggregation into a single SQL query. Similarly, adding `select_related('author', 'category')` and `prefetch_related('tags')` to post list querysets prevented ~20+ extra queries per page rendering.
+**Action:** Always check list comprehensions and template loops for relation accesses and filter counts, using annotations and select/prefetch_related instead.

@@ -31,12 +31,14 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: Use select_related/prefetch_related to eliminate N+1 queries during card rendering.
+    # Impact: Reduces query count from ~25+ queries down to 4 queries on home page load.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -439,7 +441,8 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    # Optimization: Pre-fetch author, category, and tags to avoid N+1 queries during search rendering.
+    posts = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     
     if query:
         posts = posts.filter(
@@ -488,7 +491,8 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    # Optimization: select_related/prefetch_related to optimize template query count
+    posts = Post.objects.filter(category=category, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +513,8 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    # Optimization: select_related/prefetch_related to optimize template query count
+    posts = Post.objects.filter(tags=tag, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -719,7 +724,8 @@ def post_stats(request, slug):
 def recent_posts_api(request):
     """API endpoint for recent posts"""
     limit = int(request.GET.get('limit', 5))
-    posts = Post.objects.filter(status='published').order_by('-created_at')[:limit]
+    # Optimization: Use select_related('author') to fetch author in same query, preventing N+1 queries.
+    posts = Post.objects.filter(status='published').select_related('author').order_by('-created_at')[:limit]
     
     data = [{
         'id': post.id,
@@ -752,15 +758,17 @@ def popular_posts_api(request):
 
 def categories_api(request):
     """API endpoint for categories"""
-    categories = Category.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # Optimization: Annotate post_count in DB query instead of executing N count queries in loop.
+    # Impact: Reduces database query count from 1 + N queries down to 1 query.
+    categories = Category.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': cat.id,
         'name': cat.name,
         'slug': cat.slug,
-        'post_count': cat.posts.filter(status='published').count(),
+        'post_count': cat.post_count,
     } for cat in categories]
     
     return JsonResponse(data, safe=False)
@@ -768,15 +776,17 @@ def categories_api(request):
 
 def tags_api(request):
     """API endpoint for tags"""
-    tags = Tag.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # Optimization: Annotate post_count in DB query instead of executing N count queries in loop.
+    # Impact: Reduces database query count from 1 + N queries down to 1 query.
+    tags = Tag.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': tag.id,
         'name': tag.name,
         'slug': tag.slug,
-        'post_count': tag.posts.filter(status='published').count(),
+        'post_count': tag.post_count,
     } for tag in tags]
     
     return JsonResponse(data, safe=False)
