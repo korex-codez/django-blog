@@ -1,0 +1,3 @@
+## 2025-05-18 - Eager Loading Foreign Keys and ManyToMany Relations in Blog Views
+**Learning:** Post listing views in Django render template fields like `post.author.username`, `post.category.name`, and `post.tags.all`. Without explicit query optimization, iterating over $N$ posts causes $O(N)$ additional database queries (N+1 problem). Using `.select_related('author', 'category')` for ForeignKey fields and `.prefetch_related('tags')` for ManyToMany fields reduces the database queries for list rendering to $O(1)$.
+**Action:** Always check template field accesses for model list views and apply `select_related` and `prefetch_related` on querysets.
