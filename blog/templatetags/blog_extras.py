@@ -10,18 +10,20 @@ register = template.Library()
 @register.simple_tag
 def get_recent_posts(count=5):
     """Get recent published posts"""
-    # ✅ FIXED: Use 'created_at' instead of 'created'
-    return Post.objects.filter(status='published').order_by('-created_at')[:count]
+    # Optimization: select_related author and category to avoid N+1 queries during template tag execution
+    return Post.objects.filter(status='published').select_related('author', 'category').order_by('-created_at')[:count]
 
 @register.simple_tag
 def get_popular_posts(count=5):
     """Get most viewed posts"""
-    return Post.objects.filter(status='published').order_by('-views')[:count]
+    # Optimization: select_related author and category to avoid N+1 queries during template tag execution
+    return Post.objects.filter(status='published').select_related('author', 'category').order_by('-views')[:count]
 
 @register.simple_tag
 def get_featured_posts(count=3):
     """Get featured posts"""
-    return Post.objects.filter(status='published', featured=True)[:count]
+    # Optimization: select_related author and category to avoid N+1 queries during template tag execution
+    return Post.objects.filter(status='published', featured=True).select_related('author', 'category')[:count]
 
 @register.simple_tag
 def get_all_categories():
@@ -131,10 +133,11 @@ def capitalize_first(value):
 @register.simple_tag
 def get_sidebar_posts():
     """Get posts for sidebar"""
+    # Optimization: select_related author and category to eliminate N+1 queries in sidebar rendering
     return {
-        'recent': Post.objects.filter(status='published').order_by('-created_at')[:5],
-        'popular': Post.objects.filter(status='published').order_by('-views')[:5],
-        'featured': Post.objects.filter(status='published', featured=True)[:3]
+        'recent': Post.objects.filter(status='published').select_related('author', 'category').order_by('-created_at')[:5],
+        'popular': Post.objects.filter(status='published').select_related('author', 'category').order_by('-views')[:5],
+        'featured': Post.objects.filter(status='published', featured=True).select_related('author', 'category')[:3]
     }
 
 @register.filter(name='social_share_url')
