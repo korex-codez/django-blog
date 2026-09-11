@@ -1,0 +1,3 @@
+## 2026-09-11 - Optimizing Django ORM Post Querysets with select_related and prefetch_related
+**Learning:** Post card list renderings across views and templatetags frequently access foreign keys (`author`, `category`) and M2M fields (`tags`). Without `select_related('author', 'category')` and `prefetch_related('tags')`, rendering list pages (like home or search) causes ~26 SQL queries per request due to N+1 lookups per post card.
+**Action:** Always wrap `Post.objects.filter(...)` with `.select_related('author', 'category').prefetch_related('tags')` when rendering post cards or list views to cut SQL queries down to 3-4 queries per page.
