@@ -1,0 +1,3 @@
+## 2026-09-12 - Django Queryset Pre-fetching & Model Property N+1 Queries
+**Learning:** Calling model helper methods like `post.total_likes()` (`self.likes.count()`) in Django template loops triggers individual SQL `COUNT` queries per item (N+1 bottleneck). Combining `select_related('author', 'category')`, `prefetch_related('tags')`, and `.annotate(likes_count=Count('likes', distinct=True))` on the queryset allows template loops to render without per-row database queries.
+**Action:** Annotate aggregate counts on querysets and fallback to model properties in templates so list views remain bounded to a fixed, minimal number of SQL queries.

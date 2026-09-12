@@ -31,12 +31,14 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # OPTIMIZATION: Use select_related and prefetch_related to eliminate N+1 database queries
+    # for author, category, and tags when rendering post list and featured cards on the home page.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category').prefetch_related('tags').annotate(likes_count=Count('likes', distinct=True))[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags').annotate(likes_count=Count('likes', distinct=True)).order_by('-created_at')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -46,19 +48,11 @@ def home(request):
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
     
-    categories = Category.objects.annotate(
-        post_count=Count('posts', filter=Q(posts__status='published'))
-    ).filter(post_count__gt=0)[:8]
-    
-    tags = Tag.objects.annotate(
-        post_count=Count('posts', filter=Q(posts__status='published'))
-    ).filter(post_count__gt=0)[:15]
-    
+    # OPTIMIZATION: Omit redundant Category and Tag queries; base_context context processor
+    # already provides globally cached 'categories' and 'tags' to all templates.
     context = {
         'featured_posts': featured_posts,
         'posts': posts,
-        'categories': categories,
-        'tags': tags,
     }
     return render(request, 'blog/home.html', context)
 
@@ -71,12 +65,18 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # OPTIMIZATION: Pre-join author/category and prefetch tags to avoid N+1 queries.
+        return Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
 
 
 def post_detail(request, slug):
     """Display a single post with comments and interactions"""
-    post = get_object_or_404(Post, slug=slug, status='published')
+    # OPTIMIZATION: Pre-fetch related author, category, and tags in 1 query.
+    post = get_object_or_404(
+        Post.objects.select_related('author', 'category').prefetch_related('tags'),
+        slug=slug,
+        status='published'
+    )
     
     # Increment view count and track view
     post.views += 1
@@ -155,10 +155,11 @@ def post_detail(request, slug):
 
 def get_related_posts(post, limit=3):
     """Get related posts based on category and tags"""
+    # OPTIMIZATION: Pre-join author and category for related posts list.
     related = Post.objects.filter(
         Q(category=post.category) | Q(tags__in=post.tags.all()),
         status='published'
-    ).exclude(id=post.id).distinct()[:limit]
+    ).select_related('author', 'category').exclude(id=post.id).distinct()[:limit]
     return related
 
 
@@ -439,7 +440,8 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    # OPTIMIZATION: Use select_related and prefetch_related for search results.
+    posts = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags')
     
     if query:
         posts = posts.filter(
@@ -488,7 +490,8 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    # OPTIMIZATION: Use select_related and prefetch_related for category list.
+    posts = Post.objects.filter(category=category, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +512,8 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    # OPTIMIZATION: Use select_related and prefetch_related for tag list.
+    posts = Post.objects.filter(tags=tag, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
