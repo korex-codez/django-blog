@@ -116,6 +116,9 @@ class Post(models.Model):
         return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
     def total_likes(self):
+        # Optimization: Use annotated likes_count if available to prevent extra SQL queries
+        if hasattr(self, 'likes_count'):
+            return self.likes_count
         return self.likes.count()
 
     def total_comments(self):
