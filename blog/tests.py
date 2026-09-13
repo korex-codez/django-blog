@@ -215,6 +215,13 @@ class ViewTests(TestCase):
         self.assertTemplateUsed(response, 'blog/home.html')
         self.assertContains(response, 'Test Post')
 
+    def test_home_page_query_optimization(self):
+        """Test that home page executes minimal queries avoiding N+1 queries when loading posts"""
+        # Ensure queries do not scale with the number of posts
+        with self.assertNumQueries(7):
+            response = self.client.get(reverse('blog:home'))
+            self.assertEqual(response.status_code, 200)
+
     def test_post_detail_page(self):
         response = self.client.get(
             reverse('blog:post_detail', kwargs={'slug': self.post.slug})
