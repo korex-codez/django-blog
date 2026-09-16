@@ -41,7 +41,7 @@ ALLOWED_HOSTS = [
     host.strip()
     for host in config(
         "ALLOWED_HOSTS",
-        "localhost,127.0.0.1"
+        "localhost,127.0.0.1,testserver"
     ).split(",")
     if host.strip()
 ]
@@ -90,6 +90,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
     "blog.middleware.ActiveUserMiddleware",
+    "blog.middleware.SecurityHeadersMiddleware",
 ]
 
 
