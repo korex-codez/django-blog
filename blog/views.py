@@ -31,12 +31,15 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Performance Optimization: Use select_related and prefetch_related to prevent N+1 queries
+    # for author, category, profile, and tags when rendering posts on the home page.
+    # Reduces database queries from O(N) to O(1) constant queries per page.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('category', 'author', 'author__profile').prefetch_related('tags')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(status='published').select_related('category', 'author', 'author__profile').prefetch_related('tags')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +74,8 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Performance Optimization: Pre-fetch related relationships to avoid N+1 queries
+        return Post.objects.filter(status='published').select_related('category', 'author', 'author__profile').prefetch_related('tags')
 
 
 def post_detail(request, slug):
@@ -100,8 +104,13 @@ def post_detail(request, slug):
         user_liked = post.likes.filter(id=request.user.id).exists()
         user_bookmarked = post.bookmarks.filter(id=request.user.id).exists()
     
-    # Get top-level comments
-    comments = post.comments.filter(active=True, parent=None)
+    # Performance Optimization: Pre-fetch comment authors, profiles, and nested reply authors/profiles
+    # to prevent N+1 database queries when iterating comments and replies in templates.
+    comments = post.comments.filter(
+        active=True, parent=None
+    ).select_related('author', 'author__profile').prefetch_related(
+        'replies', 'replies__author', 'replies__author__profile'
+    )
     
     # Handle comment submission
     if request.method == 'POST' and request.user.is_authenticated:
@@ -155,10 +164,11 @@ def post_detail(request, slug):
 
 def get_related_posts(post, limit=3):
     """Get related posts based on category and tags"""
+    # Performance Optimization: Eager-load category and author for related post cards
     related = Post.objects.filter(
         Q(category=post.category) | Q(tags__in=post.tags.all()),
         status='published'
-    ).exclude(id=post.id).distinct()[:limit]
+    ).select_related('category', 'author').exclude(id=post.id).distinct()[:limit]
     return related
 
 
