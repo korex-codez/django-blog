@@ -500,3 +500,39 @@ class SignalTests(TestCase):
             password='testpass123'
         )
         self.assertTrue(Profile.objects.filter(user=user).exists())
+
+
+class PerformanceQueryTests(TestCase):
+    """Test database query optimization and performance"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='perfuser',
+            email='perf@test.com',
+            password='testpass123'
+        )
+        self.category = Category.objects.create(
+            name='Perf Category',
+            slug='perf-category'
+        )
+        self.tag1 = Tag.objects.create(name='tag1', slug='tag1')
+        self.tag2 = Tag.objects.create(name='tag2', slug='tag2')
+
+        # Create multiple published posts to test N+1 query elimination
+        for i in range(10):
+            post = Post.objects.create(
+                title=f'Performance Test Post {i}',
+                content=f'This is long performance test content for post {i} to test ORM efficiency.',
+                author=self.user,
+                category=self.category,
+                status='published',
+                featured=(i < 3)
+            )
+            post.tags.add(self.tag1, self.tag2)
+
+    def test_post_list_query_count(self):
+        """Verify that post list view query count is optimized with prefetching and annotations."""
+        # Query count is fixed at 5 queries regardless of how many posts exist
+        with self.assertNumQueries(5):
+            response = self.client.get(reverse('blog:post_list'))
+            self.assertEqual(response.status_code, 200)
