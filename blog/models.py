@@ -59,7 +59,7 @@ class Post(models.Model):
     featured_image = models.ImageField(upload_to='posts/%Y/%m/%d/', blank=True, null=True)
     
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
     
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
