@@ -12,10 +12,11 @@ def search_autocomplete(request):
     """Search autocomplete API endpoint"""
     query = request.GET.get('q', '')
     if len(query) >= 2:
+        # Performance Optimization: Use select_related('category') to prevent N+1 queries when accessing category.name
         posts = Post.objects.filter(
             status='published',
             title__icontains=query
-        )[:10]
+        ).select_related('category')[:10]
         results = [{
             'label': post.title,
             'value': post.slug,
@@ -76,7 +77,8 @@ def post_stats(request, slug):
 def recent_posts_api(request):
     """API endpoint for recent posts"""
     limit = int(request.GET.get('limit', 5))
-    posts = Post.objects.filter(status='published').order_by('-created_at')[:limit]
+    # Performance Optimization: Use select_related('author') to prevent N+1 queries when accessing author.username
+    posts = Post.objects.filter(status='published').select_related('author').order_by('-created_at')[:limit]
     
     data = [{
         'id': post.id,
@@ -109,15 +111,17 @@ def popular_posts_api(request):
 @require_GET
 def categories_api(request):
     """API endpoint for categories"""
-    categories = Category.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # Performance Optimization: Use Count annotation to aggregate post count in 1 single query instead of N+1 count queries
+    from django.db.models import Count, Q
+    categories = Category.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': cat.id,
         'name': cat.name,
         'slug': cat.slug,
-        'post_count': cat.posts.filter(status='published').count(),
+        'post_count': cat.post_count,
     } for cat in categories]
     
     return JsonResponse(data, safe=False)
@@ -125,15 +129,17 @@ def categories_api(request):
 @require_GET
 def tags_api(request):
     """API endpoint for tags"""
-    tags = Tag.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # Performance Optimization: Use Count annotation to aggregate post count in 1 single query instead of N+1 count queries
+    from django.db.models import Count, Q
+    tags = Tag.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': tag.id,
         'name': tag.name,
         'slug': tag.slug,
-        'post_count': tag.posts.filter(status='published').count(),
+        'post_count': tag.post_count,
     } for tag in tags]
     
     return JsonResponse(data, safe=False)

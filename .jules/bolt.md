@@ -1,0 +1,3 @@
+## 2026-03-31 - ORM N+1 Optimization for Post Feeds and API Aggregation
+**Learning:** Post feed views (`home`, `PostListView`, `search_posts`, `category_posts`, `tag_posts`) accessed author username, category name, and post tags in template loops without `select_related` or `prefetch_related`, generating up to N+1 queries per post card. Similarly, category and tag API endpoints iterated over models to calculate published post counts via individual `.count()` filter queries.
+**Action:** Always use `.select_related('author', 'category').prefetch_related('tags')` on Post querysets rendering post lists. For count aggregations on Category and Tag, use `.annotate(post_count=Count('posts', filter=Q(posts__status='published')))` to execute aggregation in a single query.
