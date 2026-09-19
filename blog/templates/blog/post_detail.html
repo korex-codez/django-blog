@@ -8,9 +8,7 @@
 
 {% block og_title %}{{ post.title }}{% endblock %}
 {% block og_description %}{{ post.excerpt|truncatewords:30 }}{% endblock %}
-{% if post.featured_image and post.featured_image.url %}
-{% block og_image %}{{ post.featured_image.url }}{% endblock %}
-{% endif %}
+{% block og_image %}{% if post.featured_image %}{{ post.featured_image.url }}{% endif %}{% endblock %}
 
 {% block content %}
 <article class="post-detail py-4">
@@ -64,7 +62,7 @@
         </div>
         
         <!-- Featured Image -->
-        {% if post.featured_image and post.featured_image.url %}
+        {% if post.featured_image %}
         <div class="row">
             <div class="col-lg-10 mx-auto mb-4">
                 <div class="post-featured-image">
@@ -201,7 +199,7 @@
                     <div class="related-grid">
                         {% for related in related_posts %}
                         <a href="{% url 'blog:post_detail' related.slug %}" class="related-item">
-                            {% if related.featured_image and related.featured_image.url %}
+                            {% if related.featured_image %}
                             <img src="{{ related.featured_image.url }}" alt="{{ related.title }}" loading="lazy">
                             {% else %}
                             <div class="related-placeholder">

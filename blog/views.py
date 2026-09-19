@@ -31,12 +31,14 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: Use select_related to eager load author and category for featured posts to prevent N+1 queries in template rendering.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Optimization: Use select_related, prefetch_related, and annotate like_count to eager load relationships and avoid N+1 queries.
+    posts_list = Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True)).order_by('-created_at')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +73,8 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Optimization: Eager load author, category, tags, and annotate like_count to eliminate N+1 queries during list rendering.
+        return Post.objects.filter(status='published').select_related('author', 'category').prefetch_related('tags').annotate(like_count=Count('likes', distinct=True)).order_by('-created_at')
 
 
 def post_detail(request, slug):
@@ -101,7 +104,8 @@ def post_detail(request, slug):
         user_bookmarked = post.bookmarks.filter(id=request.user.id).exists()
     
     # Get top-level comments
-    comments = post.comments.filter(active=True, parent=None)
+    # Optimization: Eager load comment authors to prevent N+1 queries when displaying comment author metadata.
+    comments = post.comments.filter(active=True, parent=None).select_related('author')
     
     # Handle comment submission
     if request.method == 'POST' and request.user.is_authenticated:
@@ -155,10 +159,11 @@ def post_detail(request, slug):
 
 def get_related_posts(post, limit=3):
     """Get related posts based on category and tags"""
+    # Optimization: Eager load author, category, and tags to eliminate N+1 queries for related post cards.
     related = Post.objects.filter(
         Q(category=post.category) | Q(tags__in=post.tags.all()),
         status='published'
-    ).exclude(id=post.id).distinct()[:limit]
+    ).select_related('author', 'category').prefetch_related('tags').exclude(id=post.id).distinct()[:limit]
     return related
 
 
@@ -224,7 +229,8 @@ def profile_view(request, username=None):
         profile_user = request.user
     
     # Get user's published posts
-    user_posts = Post.objects.filter(author=profile_user, status='published')
+    # Optimization: Pre-select category and prefetch tags to eliminate N+1 queries on profile cards.
+    user_posts = Post.objects.filter(author=profile_user, status='published').select_related('category').prefetch_related('tags')
     paginator = Paginator(user_posts, 6)
     page = request.GET.get('page')
     try:
@@ -238,7 +244,8 @@ def profile_view(request, username=None):
     bookmark_posts = []
     bookmark_count = 0
     if request.user == profile_user:
-        bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+        # Optimization: Pre-select author, category, and prefetch tags for bookmarked posts list.
+        bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published').select_related('author', 'category').prefetch_related('tags')
         bookmark_count = bookmark_posts.count()
     
     context = {
@@ -462,6 +469,9 @@ def search_posts(request):
     else:  # recent
         posts = posts.order_by('-created_at')
     
+    # Optimization: Pre-select author and category and prefetch tags for search results page.
+    posts = posts.select_related('author', 'category').prefetch_related('tags')
+
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
     try:
@@ -488,7 +498,8 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    # Optimization: Pre-select author and category, prefetch tags for category page posts.
+    posts = Post.objects.filter(category=category, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +520,8 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    # Optimization: Pre-select author and category, prefetch tags for tag page posts.
+    posts = Post.objects.filter(tags=tag, status='published').select_related('author', 'category').prefetch_related('tags')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -953,6 +965,7 @@ def save_draft(request):
 @login_required
 def bookmarks_view(request):
     """View all bookmarked posts"""
-    bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+    # Optimization: Pre-select author and category, prefetch tags for bookmarks page.
+    bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published').select_related('author', 'category').prefetch_related('tags')
     return render(request, 'blog/bookmarks.html', {'bookmark_posts': bookmark_posts})
 
