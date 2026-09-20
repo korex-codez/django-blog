@@ -1,0 +1,3 @@
+## 2026-03-31 - ORM N+1 Query Elimination in Post List Views
+**Learning:** Post list components render author, category, tags, and total likes count for each post. Calling `post.total_likes()` (`self.likes.count()`) in Django templates triggers an individual database query per post card.
+**Action:** Annotate `likes_count=Count('likes', distinct=True)` on post list querysets and update `Post.total_likes()` to use `self.likes_count` when present. Combine with `select_related('author', 'category')` and `prefetch_related('tags')` to reduce query count from O(N) down to a constant 3 queries for post loading.

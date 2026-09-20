@@ -31,12 +31,17 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: Use select_related, prefetch_related, and annotate to eliminate N+1 DB queries
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('author', 'category')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        likes_count=Count('likes', distinct=True)
+    ).order_by('-created_at')
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +76,12 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Optimization: Prevent N+1 queries when rendering post cards
+        return Post.objects.filter(
+            status='published'
+        ).select_related('author', 'category').prefetch_related('tags').annotate(
+            likes_count=Count('likes', distinct=True)
+        ).order_by('-created_at')
 
 
 def post_detail(request, slug):
@@ -439,7 +449,12 @@ def search_posts(request):
     category_slug = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'recent')
     
-    posts = Post.objects.filter(status='published')
+    # Optimization: Pre-join author, category, tags, and annotate likes_count
+    posts = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        likes_count=Count('likes', distinct=True)
+    )
     
     if query:
         posts = posts.filter(
@@ -488,7 +503,12 @@ def search_posts(request):
 def category_posts(request, slug):
     """Filter posts by category"""
     category = get_object_or_404(Category, slug=slug)
-    posts = Post.objects.filter(category=category, status='published')
+    # Optimization: Pre-join related models to eliminate N+1 queries
+    posts = Post.objects.filter(
+        category=category, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        likes_count=Count('likes', distinct=True)
+    ).order_by('-created_at')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -509,7 +529,12 @@ def category_posts(request, slug):
 def tag_posts(request, slug):
     """Filter posts by tag"""
     tag = get_object_or_404(Tag, slug=slug)
-    posts = Post.objects.filter(tags=tag, status='published')
+    # Optimization: Pre-join related models to eliminate N+1 queries
+    posts = Post.objects.filter(
+        tags=tag, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        likes_count=Count('likes', distinct=True)
+    ).order_by('-created_at')
     
     paginator = Paginator(posts, 6)
     page = request.GET.get('page')
@@ -953,6 +978,11 @@ def save_draft(request):
 @login_required
 def bookmarks_view(request):
     """View all bookmarked posts"""
-    bookmark_posts = Post.objects.filter(bookmarks=request.user, status='published')
+    # Optimization: Pre-join related models to eliminate N+1 queries
+    bookmark_posts = Post.objects.filter(
+        bookmarks=request.user, status='published'
+    ).select_related('author', 'category').prefetch_related('tags').annotate(
+        likes_count=Count('likes', distinct=True)
+    )
     return render(request, 'blog/bookmarks.html', {'bookmark_posts': bookmark_posts})
 
