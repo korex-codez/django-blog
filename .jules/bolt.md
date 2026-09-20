@@ -1,0 +1,3 @@
+## 2026-08-25 - Prevent N+1 queries in Django blog views
+**Learning:** Using `select_related('author', 'category', 'author__profile')` and `prefetch_related('tags')` on Post querysets drastically reduces query counts across post listing pages (`home`, `search_posts`, `category_posts`, `tag_posts`). Similarly, using `select_related('author', 'author__profile')` and `prefetch_related('replies', 'replies__author', 'replies__author__profile')` on Comment querysets in `post_detail` eliminates query spikes when rendering nested comments.
+**Action:** Always inspect template attribute accesses (such as `post.author.profile.avatar` and `post.tags.all`) and apply `select_related` / `prefetch_related` early in queryset definitions.
