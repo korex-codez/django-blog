@@ -1,6 +1,6 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views, api_views
 from .views import PostListView, PostSitemap
 
 app_name = 'blog'
@@ -45,8 +45,12 @@ urlpatterns = [
     # path('api/newsletter/subscribe/', views.newsletter_subscribe_api, name='newsletter_subscribe_api'),
     
     # ✅ API Endpoints for enhancements
+    path('api/search-autocomplete/', api_views.search_autocomplete, name='search_autocomplete'),
     path('api/tag-autocomplete/', views.tag_autocomplete, name='tag_autocomplete'),
     path('api/save-draft/', views.save_draft, name='save_draft'),
+    path('api/post-stats/<slug:slug>/', api_views.post_stats, name='post_stats_api'),
+    path('api/recent-posts/', api_views.recent_posts_api, name='recent_posts_api'),
+    path('api/popular-posts/', api_views.popular_posts_api, name='popular_posts_api'),
     
     # Password Reset
     path('password-reset/',
