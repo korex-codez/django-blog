@@ -500,3 +500,34 @@ class SignalTests(TestCase):
             password='testpass123'
         )
         self.assertTrue(Profile.objects.filter(user=user).exists())
+
+
+class PerformanceTests(TestCase):
+    """Test performance optimizations"""
+
+    def test_home_page_query_count(self):
+        """Ensure home page renders with a minimal, constant number of queries avoiding N+1 issues"""
+        user = User.objects.create_user(
+            username='perf_user',
+            email='perf@test.com',
+            password='testpass123'
+        )
+        category = Category.objects.create(name='Perf Cat', slug='perf-cat')
+        tag = Tag.objects.create(name='perf-tag', slug='perf-tag')
+
+        # Create multiple posts with author, category, and tags
+        for i in range(10):
+            p = Post.objects.create(
+                title=f'Perf Post {i}',
+                content='Perf content',
+                author=user,
+                category=category,
+                status='published',
+                featured=(i < 3)
+            )
+            p.tags.add(tag)
+
+        # Assert query count remains constant regardless of post count (no N+1 query problem)
+        with self.assertNumQueries(7):
+            response = self.client.get(reverse('blog:home'))
+            self.assertEqual(response.status_code, 200)
