@@ -109,15 +109,18 @@ def popular_posts_api(request):
 @require_GET
 def categories_api(request):
     """API endpoint for categories"""
-    categories = Category.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # OPTIMIZATION: Annotate post_count in a single database query to eliminate N+1 queries.
+    # Impact: Reduces query count from O(N) to O(1) for category listing API endpoint.
+    from django.db.models import Count, Q
+    categories = Category.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': cat.id,
         'name': cat.name,
         'slug': cat.slug,
-        'post_count': cat.posts.filter(status='published').count(),
+        'post_count': cat.post_count,
     } for cat in categories]
     
     return JsonResponse(data, safe=False)
@@ -125,15 +128,18 @@ def categories_api(request):
 @require_GET
 def tags_api(request):
     """API endpoint for tags"""
-    tags = Tag.objects.filter(
-        posts__status='published'
-    ).distinct()
+    # OPTIMIZATION: Annotate post_count in a single database query to eliminate N+1 queries.
+    # Impact: Reduces query count from O(N) to O(1) for tag listing API endpoint.
+    from django.db.models import Count, Q
+    tags = Tag.objects.annotate(
+        post_count=Count('posts', filter=Q(posts__status='published'))
+    ).filter(post_count__gt=0)
     
     data = [{
         'id': tag.id,
         'name': tag.name,
         'slug': tag.slug,
-        'post_count': tag.posts.filter(status='published').count(),
+        'post_count': tag.post_count,
     } for tag in tags]
     
     return JsonResponse(data, safe=False)
