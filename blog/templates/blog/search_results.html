@@ -77,7 +77,7 @@
                                 </div>
                                 
                                 <h5 class="card-title fw-bold">
-                                    <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none text-dark stretched-link-hover">
+                                    <a href="{% url 'blog:post_detail' post.slug %}" class="text-decoration-none text-dark stretched-link-hover" title="{{ post.title }}">
                                         {% if query %}
                                             {{ post.title|highlight:query }}
                                         {% else %}
