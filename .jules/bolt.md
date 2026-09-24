@@ -1,0 +1,3 @@
+## 2026-03-31 - QuerySet Optimizations for Post List Views
+**Learning:** Rendering post lists and card grids in Django templates accesses ForeignKey relations (`post.author`, `post.category`) and ManyToMany relations (`post.tags`). Without explicit QuerySet optimization, Django executes individual SQL queries per item (an N+1 query cascade). By chaining `.select_related('category', 'author')` and `.prefetch_related('tags')` on the `Post` QuerySet, Django fetches all foreign keys via SQL `JOIN`s and prefetches M2M relations in a single batched query.
+**Action:** Always chain `.select_related('category', 'author')` and `.prefetch_related('tags')` on any `Post` list view or component that renders post cards to prevent N+1 DB query cascades.
