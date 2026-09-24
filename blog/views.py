@@ -442,6 +442,8 @@ def search_posts(request):
     posts = Post.objects.filter(status='published')
     
     if query:
+        # Generate post excerpts before filtering/searching if excerpt is empty
+        # Note: search looks at title, content, excerpt, author, category, tag
         posts = posts.filter(
             Q(title__icontains=query) |
             Q(content__icontains=query) |

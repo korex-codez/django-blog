@@ -21,16 +21,21 @@ class PostForm(forms.ModelForm):
             'featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].required = False
+        self.fields['tags'].required = False
+
     def clean_title(self):
         title = self.cleaned_data.get('title')
-        if len(title) < 5:
+        if title and len(title) < 5:
             raise ValidationError('Title must be at least 5 characters long.')
         return title
 
     def clean_content(self):
         content = self.cleaned_data.get('content')
-        if len(content) < 50:
-            raise ValidationError('Content must be at least 50 characters long.')
+        if content and len(content) < 10:
+            raise ValidationError('Content must be at least 10 characters long.')
         return content
 
 
@@ -47,6 +52,11 @@ class EditPostForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['category'].required = False
+        self.fields['tags'].required = False
 
 
 class CommentForm(forms.ModelForm):
