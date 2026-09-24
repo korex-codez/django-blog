@@ -6,6 +6,10 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to update user's last_seen timestamp in Profile.
+    Throttled via cache (every 300 seconds) to avoid a DB write query on every HTTP request.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +17,16 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            # Throttle DB write to once every 5 minutes (300 seconds) per user
+            if not cache.get(cache_key):
+                try:
+                    profile = Profile.objects.get(user=request.user)
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                    cache.set(cache_key, True, 300)
+                except Profile.DoesNotExist:
+                    pass
         
         return response
 
