@@ -484,6 +484,14 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_throttling(self):
+        from django.core.cache import cache
+        self.client.login(username='testuser', password='testpass123')
+        # First request sets last_seen and populates cache
+        self.client.get(reverse('blog:home'))
+        cache_key = f'active_user_last_seen_{self.user.id}'
+        self.assertTrue(cache.get(cache_key))
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
