@@ -484,6 +484,30 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_caching(self):
+        from blog.middleware import ActiveUserMiddleware
+        from django.test import RequestFactory
+        from django.http import HttpResponse
+        from django.core.cache import cache
+
+        cache.clear()
+        rf = RequestFactory()
+        middleware = ActiveUserMiddleware(lambda r: HttpResponse("OK"))
+
+        request = rf.get('/')
+        request.user = self.user
+
+        # First request updates last_seen and caches key
+        response = middleware(request)
+        self.assertEqual(response.status_code, 200)
+
+        user_profile = Profile.objects.get(user=self.user)
+        self.assertIsNotNone(user_profile.last_seen)
+
+        # Second request within cache TTL executes 0 database queries
+        with self.assertNumQueries(0):
+            middleware(request)
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)

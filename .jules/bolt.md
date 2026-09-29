@@ -1,0 +1,3 @@
+## 2026-03-31 - Throttle Middleware DB Updates with Cache
+**Learning:** Per-request tracking middlewares like `ActiveUserMiddleware` that update database timestamps (e.g. `Profile.last_seen`) execute `SELECT` and `UPDATE` SQL queries on every single HTTP request for authenticated users. Caching a key in `django.core.cache` (e.g., with a 300s TTL) avoids write amplification and eliminates 1 DB read + 1 DB write per request.
+**Action:** Always check custom middlewares for unconditional database operations on every request, and use `django.core.cache` or async background tasks to throttle per-request state updates.
