@@ -476,6 +476,8 @@ class MiddlewareTests(TestCase):
         )
 
     def test_active_user_middleware(self):
+        from django.core.cache import cache
+        cache.clear()
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('blog:home'))
         self.assertEqual(response.status_code, 200)
@@ -483,6 +485,13 @@ class MiddlewareTests(TestCase):
         # Check if last_seen was updated
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
+        first_last_seen = user_profile.last_seen
+
+        # Second request should use cache and not trigger DB update
+        response = self.client.get(reverse('blog:home'))
+        self.assertEqual(response.status_code, 200)
+        user_profile.refresh_from_db()
+        self.assertEqual(user_profile.last_seen, first_last_seen)
 
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
