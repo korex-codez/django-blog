@@ -1,11 +1,24 @@
 from django.utils import timezone
 from django.core.cache import cache
-from django.conf import settings  # ✅ ADD THIS IMPORT
+from django.db import DatabaseError
+from django.conf import settings
 from .models import Profile
 import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to track user activity by updating Profile.last_seen.
+
+    OPTIMIZATION:
+    To prevent running a database SELECT and UPDATE query on every single HTTP request
+    for authenticated users, we throttle updates using django.core.cache.
+    The database update is executed at most once every 300 seconds (5 minutes) per user.
+    Additionally, we use `.filter().update()` to perform a single atomic SQL UPDATE,
+    skipping the extra SELECT query entirely.
+    Expected Impact: Reduces DB queries by 2 (1 SELECT, 1 UPDATE) per request for active
+    sessions within the cache window, significantly lowering DB write contention and latency.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,11 +26,12 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
+            cache_key = f'user_last_seen_{request.user.id}'
             try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
+                if not cache.get(cache_key):
+                    Profile.objects.filter(user=request.user).update(last_seen=timezone.now())
+                    cache.set(cache_key, True, 300)
+            except DatabaseError:
                 pass
         
         return response
