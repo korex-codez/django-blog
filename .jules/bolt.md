@@ -1,0 +1,3 @@
+## 2026-03-31 - Cache Throttling for User Tracking Middleware
+**Learning:** Performing `Profile.objects.get()` and `profile.save()` in custom request tracking middleware (e.g. `ActiveUserMiddleware`) executes redundant SELECT and UPDATE SQL queries on every single HTTP request from authenticated users, creating a severe I/O bottleneck and write lock contention.
+**Action:** Always throttle per-request user activity/last_seen database updates using `django.core.cache` (e.g. 300s TTL) and use `Profile.objects.filter(user=user).update(last_seen=now)` to run a single atomic SQL update query without fetching the ORM model instance first.
