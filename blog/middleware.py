@@ -13,12 +13,18 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            # OPTIMIZATION: Throttle per-request Profile.last_seen database updates to once every 300 seconds (5 mins) per user.
+            # Without cache, every HTTP request by an authenticated user executes a SELECT + UPDATE SQL query on Profile.
+            # Expected impact: Eliminates 2 database queries per HTTP request for authenticated users.
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                try:
+                    profile = Profile.objects.get(user=request.user)
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                except Profile.DoesNotExist:
+                    pass
+                cache.set(cache_key, True, 300)
         
         return response
 
