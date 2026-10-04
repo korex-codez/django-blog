@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
+from django.core.cache import cache
 from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter
 from .forms import PostForm, CommentForm, UserRegisterForm, ProfileForm
 
@@ -113,7 +114,7 @@ class FormTests(TestCase):
     def test_post_form_valid_data(self):
         form = PostForm(data={
             'title': 'New Post',
-            'content': 'This is test content for the post',
+            'content': 'This is valid test content for the post that exceeds fifty characters.',
             'status': 'published'
         })
         self.assertTrue(form.is_valid())
@@ -253,7 +254,7 @@ class ViewTests(TestCase):
         response = self.client.get(reverse('blog:search') + '?q=test')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'blog/search_results.html')
-        self.assertContains(response, 'Test Post')
+        self.assertContains(response, self.post.slug)
 
     def test_category_view(self):
         response = self.client.get(
@@ -344,7 +345,7 @@ class AuthViewTests(TestCase):
     def test_create_post_submission(self):
         response = self.client.post(reverse('blog:create_post'), {
             'title': 'New Test Post',
-            'content': 'This is the content of the new test post',
+            'content': 'This is the content of the new test post that exceeds fifty characters.',
             'status': 'published'
         })
         self.assertEqual(response.status_code, 302)  # Redirect
@@ -362,7 +363,7 @@ class AuthViewTests(TestCase):
             reverse('blog:edit_post', kwargs={'slug': self.post.slug}),
             {
                 'title': 'Updated Post Title',
-                'content': 'Updated content',
+                'content': 'Updated content that contains more than fifty characters for validation.',
                 'status': 'published'
             }
         )
@@ -483,6 +484,21 @@ class MiddlewareTests(TestCase):
         # Check if last_seen was updated
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
+
+    def test_active_user_middleware_throttling(self):
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request: should set cache and update last_seen
+        response1 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response1.status_code, 200)
+        cache_key = f'active_user_last_seen_{self.user.id}'
+        self.assertTrue(cache.get(cache_key))
+
+        # Subsequent request within cache window should not issue profile update query (7 queries vs 8)
+        with self.assertNumQueries(7):
+            response2 = self.client.get(reverse('blog:home'))
+            self.assertEqual(response2.status_code, 200)
 
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
