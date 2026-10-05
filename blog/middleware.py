@@ -6,6 +6,12 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to update user's last_seen timestamp.
+    Throttled using django.core.cache (300s timeout) to avoid executing SQL
+    UPDATE queries on every single HTTP request. Reduces DB queries by ~2 per request
+    for authenticated users.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +19,12 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'user_last_seen_{request.user.id}'
+            # Throttling: Only update DB if last_seen wasn't updated in the last 5 minutes
+            if not cache.get(cache_key):
+                now = timezone.now()
+                cache.set(cache_key, True, 300)
+                Profile.objects.filter(user=request.user).update(last_seen=now)
         
         return response
 
