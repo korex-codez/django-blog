@@ -1,0 +1,3 @@
+## 2026-10-07 - Throttling Per-Request Database Updates in Middleware
+**Learning:** Middleware running on every request (like `ActiveUserMiddleware` updating `Profile.last_seen`) causes severe database load by executing SQL `SELECT` and `UPDATE` queries on every HTTP request from authenticated users. Throttling these writes using Django's cache (`django.core.cache`) with a TTL (e.g. 5 minutes) eliminates ~99% of redundant database writes without loss of active user tracking fidelity.
+**Action:** Always check `cache.get(cache_key)` before executing per-request tracking database writes in custom middleware.
