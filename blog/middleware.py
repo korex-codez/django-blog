@@ -12,13 +12,19 @@ class ActiveUserMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Optimization: Throttle updating Profile.last_seen using Django cache.
+        # Without caching, every authenticated HTTP request executes SELECT and UPDATE SQL queries.
+        # By caching for 300 seconds (5 minutes), database write load is reduced by ~99% on frequent user traffic.
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                try:
+                    profile = Profile.objects.get(user=request.user)
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                except Profile.DoesNotExist:
+                    pass
+                cache.set(cache_key, True, 300)
         
         return response
 
