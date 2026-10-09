@@ -1,0 +1,3 @@
+## 2026-10-09 - ActiveUserMiddleware Database Query Throttling
+**Learning:** Middleware that updates model attributes on every HTTP request (such as `Profile.last_seen`) generates a `SELECT` and `UPDATE` SQL query on every request for authenticated users. Using `django.core.cache` to throttle updates (e.g. 5-minute cache window) reduces database overhead significantly without losing timestamp accuracy for active user tracking.
+**Action:** Always check custom middlewares for database updates on per-request paths and use `django.core.cache` or `update_fields` to optimize or throttle database access.
