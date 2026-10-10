@@ -484,6 +484,22 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_throttling(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request updates last_seen and sets cache key
+        self.client.get(reverse('blog:home'))
+        profile1 = Profile.objects.get(user=self.user)
+        first_last_seen = profile1.last_seen
+
+        # Second request within TTL uses cache and does not update last_seen DB field
+        self.client.get(reverse('blog:home'))
+        profile2 = Profile.objects.get(user=self.user)
+        self.assertEqual(profile2.last_seen, first_last_seen)
+        self.assertTrue(cache.get(f'active_user_{self.user.id}'))
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
