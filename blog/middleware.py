@@ -1,11 +1,20 @@
 from django.utils import timezone
-from django.core.cache import cache
+from django.core.cache import cache  # Used for throttling database updates
 from django.conf import settings  # ✅ ADD THIS IMPORT
 from .models import Profile
 import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to track authenticated user activity by updating profile.last_seen.
+    Throttled using django.core.cache to prevent executing SQL SELECT and UPDATE queries
+    on every single HTTP request for logged-in users.
+
+    Performance Impact:
+    - Saves 2 SQL queries (SELECT + UPDATE) per request for authenticated users.
+    - Limits database writes to once every 300 seconds (5 minutes) per active user session.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +22,16 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            # Throttle database profile update to once every 5 minutes (300s)
+            if not cache.get(cache_key):
+                cache.set(cache_key, True, 300)
+                try:
+                    profile = Profile.objects.get(user=request.user)
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                except Profile.DoesNotExist:
+                    pass
         
         return response
 
