@@ -1,0 +1,3 @@
+## 2026-10-12 - Prevent N+1 Query Cascades in Post List Views
+**Learning:** Post list views (`home`, `PostListView`, `search_posts`, `category_posts`, `tag_posts`) rendered post cards that accessed `post.category`, `post.author`, and `post.tags`. Without `select_related` and `prefetch_related`, this triggered individual database queries for every single post displayed, increasing home page query count to ~35 queries.
+**Action:** Chain `.select_related('category', 'author')` and `.prefetch_related('tags')` on `Post` querysets in Django list views to perform efficient SQL JOINs and batched prefetches, reducing total query count from 35 down to 12.
