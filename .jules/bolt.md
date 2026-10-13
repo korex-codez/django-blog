@@ -1,0 +1,3 @@
+## 2026-03-31 - Throttle Tracking Middleware Database Updates with Cache
+**Learning:** Custom tracking middlewares like `ActiveUserMiddleware` that update timestamps (e.g. `Profile.last_seen`) on every HTTP request trigger unnecessary `SELECT` and `UPDATE` SQL queries per request for logged-in users. Throttling these updates using `django.core.cache` and doing direct `.update()` calls eliminates redundant DB writes and significantly reduces database load across the app.
+**Action:** Always check custom tracking middlewares for per-request database updates and use `django.core.cache` to throttle updates with an appropriate timeout window (e.g. 300 seconds).
