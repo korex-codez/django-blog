@@ -6,6 +6,11 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to track user activity.
+    Throttled using django.core.cache to prevent executing SQL UPDATE queries on every HTTP request.
+    Reduces DB queries by 100% for active users within the 300s cache window.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +18,14 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            # Throttle DB updates: only update Profile.last_seen if not updated in the last 5 minutes
+            if not cache.get(cache_key):
+                try:
+                    Profile.objects.filter(user=request.user).update(last_seen=timezone.now())
+                    cache.set(cache_key, True, 300)
+                except Exception:
+                    pass
         
         return response
 
