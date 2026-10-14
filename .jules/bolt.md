@@ -1,0 +1,3 @@
+## 2026-08-25 - Per-Request Database Writes in Custom Middleware
+**Learning:** Custom tracking middlewares (e.g. `ActiveUserMiddleware` updating `Profile.last_seen`) execute database `SELECT` and `UPDATE` queries on every HTTP request for authenticated users. Without caching or throttling, this produces significant unnecessary write traffic, lock contention, and ORM model save overhead.
+**Action:** Throttle tracking updates using Django's cache framework (`cache.get`/`cache.set` with a suitable TTL like 300 seconds) and use direct QuerySet `.update()` calls (`Profile.objects.filter(user_id=...).update(...)`) to bypass unnecessary model instantiation and `SELECT` overhead.
