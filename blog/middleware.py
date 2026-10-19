@@ -13,12 +13,16 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            # OPTIMIZATION: Throttle per-request DB updates for last_seen using django.core.cache.
+            # Executing SELECT + UPDATE on every HTTP request by authenticated users creates significant
+            # database load. Throttling to once every 5 minutes (300s) eliminates 2 DB queries per request.
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                try:
+                    Profile.objects.filter(user=request.user).update(last_seen=timezone.now())
+                    cache.set(cache_key, True, 300)
+                except Exception:
+                    pass
         
         return response
 
