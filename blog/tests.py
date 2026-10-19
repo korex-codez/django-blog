@@ -484,6 +484,24 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_throttling(self):
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request updates last_seen and sets cache key
+        response1 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response1.status_code, 200)
+
+        profile_after_first = Profile.objects.get(user=self.user)
+        initial_last_seen = profile_after_first.last_seen
+        self.assertIsNotNone(initial_last_seen)
+
+        # Second request should be throttled by cache and maintain same timestamp
+        response2 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response2.status_code, 200)
+
+        profile_after_second = Profile.objects.get(user=self.user)
+        self.assertEqual(profile_after_second.last_seen, initial_last_seen)
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
