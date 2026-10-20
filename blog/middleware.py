@@ -6,6 +6,15 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Middleware to track when authenticated users were last active.
+
+    PERFORMANCE OPTIMIZATION:
+    Throttles database updates to once every 5 minutes (300 seconds) per user
+    using Django's cache framework. This eliminates 2 database queries (1 SELECT + 1 UPDATE)
+    on every request for active sessions, drastically reducing DB load.
+    When updating, update_fields=['last_seen'] ensures an efficient minimal SQL query.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +22,16 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            # Only hit DB if the cache key has expired (every 5 minutes)
+            if not cache.get(cache_key):
+                cache.set(cache_key, True, 300)
+                try:
+                    profile = Profile.objects.get(user=request.user)
+                    profile.last_seen = timezone.now()
+                    profile.save(update_fields=['last_seen'])
+                except Profile.DoesNotExist:
+                    pass
         
         return response
 
