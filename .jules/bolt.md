@@ -1,0 +1,3 @@
+## 2025-05-18 - Throttling Per-Request Middleware DB Updates
+**Learning:** Custom tracking middleware (such as `ActiveUserMiddleware` updating `Profile.last_seen`) executing `Profile.objects.get()` and `.save()` on every HTTP request creates severe database overhead and connection pool contention under load. Using `django.core.cache` to set a TTL flag (e.g. 300 seconds) before performing `Profile.objects.filter(user=request.user).update(last_seen=now)` eliminates unnecessary SQL SELECT and UPDATE queries for ~99% of requests.
+**Action:** Always check for cache-throttling on per-request database updates in custom Django middlewares before executing SQL queries.
