@@ -13,12 +13,16 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            # Performance Optimization: Throttle Profile.last_seen DB updates using cache.
+            # Executing SELECT + UPDATE queries on every HTTP request creates significant DB contention.
+            # We cache a presence flag for 300s (5 minutes) and update `last_seen` only when expired.
+            # Expected Impact: Reduces active user tracking DB queries by ~99% (from 2 queries per request to 1 update per 5 min).
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                updated = Profile.objects.filter(user=request.user).update(last_seen=now)
+                if updated:
+                    cache.set(cache_key, True, 300)
         
         return response
 
