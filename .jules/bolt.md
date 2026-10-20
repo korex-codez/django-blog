@@ -1,0 +1,3 @@
+## 2026-08-25 - Throttle Per-Request Middleware DB Updates via Cache
+**Learning:** Middleware tracking operations (such as `ActiveUserMiddleware` updating `Profile.last_seen`) execute SQL `SELECT` and `UPDATE` queries on every single HTTP request for authenticated users. Under high request traffic, this creates significant database contention and unnecessary SQL load.
+**Action:** Throttle per-request tracking updates in Django middleware using `django.core.cache` (e.g. `cache.get`/`cache.set` with a 300s TTL) to limit DB queries to once per interval per user session, and use `profile.save(update_fields=['last_seen'])` to minimize SQL write footprint.
