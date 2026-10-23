@@ -6,6 +6,14 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Performance Optimization:
+    Throttles updating Profile.last_seen using django.core.cache to prevent executing SQL UPDATE
+    queries on every HTTP request by authenticated users.
+
+    Expected Impact:
+    Eliminates 1-2 SQL queries per authenticated request, significantly reducing database write load and response latency.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +21,11 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                Profile.objects.filter(user=request.user).update(last_seen=now)
+                cache.set(cache_key, now, 300)
         
         return response
 
