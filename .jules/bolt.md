@@ -1,0 +1,3 @@
+## 2025-05-18 - Throttle middleware DB writes using django.core.cache
+**Learning:** Updating user profile timestamps (e.g. `Profile.last_seen`) in Django custom middleware runs on every HTTP request for authenticated users. This generates blocking SQL `SELECT` and `UPDATE` queries on every page hit, drastically slowing down response times under traffic.
+**Action:** Throttle per-request database updates in custom tracking middleware by using `django.core.cache` with a key (e.g. `last_seen_<user_id>`) and a 5-minute timeout. Skip DB writes if the cache key exists.
