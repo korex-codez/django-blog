@@ -484,6 +484,19 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_cache_throttling(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request updates last_seen and populates cache
+        with self.assertNumQueries(8):  # session + user + profile check + query payload queries
+            self.client.get(reverse('blog:home'))
+
+        # Subsequent request within cache TTL should not trigger Profile UPDATE query
+        with self.assertNumQueries(7):  # 1 less query because Profile update query is skipped
+            self.client.get(reverse('blog:home'))
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
