@@ -1,0 +1,3 @@
+## 2026-03-30 - Cache-throttling custom tracking middleware
+**Learning:** Custom tracking middlewares like `ActiveUserMiddleware` executing `SELECT` + `UPDATE` queries on `Profile` on every single authenticated request create substantial database overhead (2 SQL queries per HTTP request). Using `django.core.cache` to cache active user status for a duration (e.g. 300s) and using direct `Profile.objects.filter(...).update(...)` eliminates redundant DB hits completely on cache hits.
+**Action:** Always check custom middlewares for per-request database updates and introduce `django.core.cache` throttling alongside `queryset.update()` to prevent query cascades.
