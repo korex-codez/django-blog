@@ -1,0 +1,3 @@
+## 2026-03-30 - Database write storm on every request from ActiveUserMiddleware
+**Learning:** `ActiveUserMiddleware` was performing a synchronous `Profile.objects.get` followed by `profile.save()` to update `last_seen` on every HTTP request by authenticated users. In high-frequency browsing sessions, this resulted in 2 database queries per request, creating unnecessary write locks and database overhead.
+**Action:** Throttle high-frequency user tracking database writes using Django's cache backend (`django.core.cache.cache`) with an appropriate TTL (e.g. 5 minutes) and execute direct updates via `QuerySet.update()` instead of loading the full model instance and calling `save()`.
