@@ -484,6 +484,27 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_throttled(self):
+        from django.core.cache import cache
+        from django.test.utils import CaptureQueriesContext
+        from django.db import connection
+
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request sets the cache and updates last_seen
+        self.client.get(reverse('blog:home'))
+        self.assertTrue(cache.get(f'last_seen_user_{self.user.id}'))
+
+        # Subsequent request should NOT execute an UPDATE query on blog_profile
+        with CaptureQueriesContext(connection) as ctx:
+            self.client.get(reverse('blog:home'))
+            profile_updates = [
+                q['sql'] for q in ctx.captured_queries
+                if q['sql'].strip().upper().startswith('UPDATE') and 'BLOG_PROFILE' in q['sql'].upper()
+            ]
+            self.assertEqual(len(profile_updates), 0, f"Found unexpected profile updates: {profile_updates}")
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
