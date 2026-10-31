@@ -1,0 +1,4 @@
+## 2026-10-31 - Throttle per-request database updates in middleware with cache and bulk update
+
+**Learning:** `ActiveUserMiddleware` ran on every request, performing a full `Profile.objects.get(user=request.user)` and `profile.save()`. This added 2 database roundtrips (1 SELECT + 1 full UPDATE) to every single HTTP request by authenticated users, saturating the database during high-traffic sessions.
+**Action:** Throttle tracking updates by checking a cached key (`active_user_seen_<user_id>`) with a TTL (e.g. 300 seconds), and use `Profile.objects.filter(user=request.user).update(last_seen=now)` to directly issue a targeted update without fetching the model or re-saving unaffected fields. This cuts database queries to 0 for active user requests during the cached window and 1 query on cache expiration.
