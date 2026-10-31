@@ -476,13 +476,36 @@ class MiddlewareTests(TestCase):
         )
 
     def test_active_user_middleware(self):
+        from django.core.cache import cache
+        cache.clear()
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('blog:home'))
         self.assertEqual(response.status_code, 200)
         
-        # Check if last_seen was updated
+        # Check if last_seen was updated and cached
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
+        cache_key = f'active_user_seen_{self.user.id}'
+        self.assertTrue(cache.get(cache_key))
+
+    def test_active_user_middleware_throttling(self):
+        from django.core.cache import cache
+        from django.test import RequestFactory
+        from blog.middleware import ActiveUserMiddleware
+
+        cache.clear()
+        rf = RequestFactory()
+        req = rf.get('/')
+        req.user = self.user
+        middleware = ActiveUserMiddleware(lambda r: None)
+
+        # First request should update profile in DB (1 query) and set cache
+        with self.assertNumQueries(1):
+            middleware(req)
+
+        # Subsequent requests while cached should skip DB update (0 queries)
+        with self.assertNumQueries(0):
+            middleware(req)
 
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
