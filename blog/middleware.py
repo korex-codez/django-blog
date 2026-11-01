@@ -12,13 +12,19 @@ class ActiveUserMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Performance optimization:
+        # Previously, every single request from an authenticated user triggered a synchronous
+        # SELECT (Profile.objects.get) followed by an UPDATE (profile.save()), executing 2 DB queries
+        # per request. We throttle DB updates to once every 300 seconds (5 minutes) per user using cache,
+        # and use QuerySet.update() to avoid the SELECT query altogether.
+        # Expected impact: Reduces database queries from 2 per authenticated request to at most 1 every
+        # 5 minutes (~100% reduction in per-request database overhead for active users).
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                Profile.objects.filter(user=request.user).update(last_seen=now)
+                cache.set(cache_key, True, 300)
         
         return response
 
