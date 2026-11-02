@@ -6,6 +6,19 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Tracks when authenticated users were last seen.
+
+    Performance optimization:
+    Instead of executing a SELECT (Profile.objects.get) followed by an UPDATE (profile.save())
+    on every single HTTP request by an authenticated user (2 queries per request), we:
+    1. Throttle updates using Django's cache framework so we only update the database
+       at most once every 5 minutes (300 seconds) per user.
+    2. Use Profile.objects.filter(user=request.user).update(...) which issues a direct, single
+       SQL UPDATE without the overhead of instantiating model instances or firing signals.
+    Expected impact: Eliminates 2 database queries on ~99% of requests for active users,
+    reducing response latency and database contention under load.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +26,11 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'user_last_seen_{request.user.id}'
+            # Only update database if last_seen hasn't been synced within cache window (300s)
+            if not cache.get(cache_key):
+                Profile.objects.filter(user=request.user).update(last_seen=timezone.now())
+                cache.set(cache_key, True, 300)
         
         return response
 
