@@ -6,6 +6,16 @@ import re
 
 
 class ActiveUserMiddleware:
+    """
+    Tracks the last seen timestamp of authenticated users.
+    Optimized with caching and direct QuerySet update:
+    - Avoids hitting the database on every HTTP request by caching the last update
+      time for 300 seconds (5 minutes).
+    - Uses QuerySet.filter(...).update(...) to perform a single targeted UPDATE query,
+      eliminating the unnecessary SELECT query and full model instance re-save.
+    Expected impact: Reduces database queries from 2 (SELECT + UPDATE) per request down
+    to 0 for cached requests, and to 1 direct UPDATE on cache expiration.
+    """
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -13,12 +23,11 @@ class ActiveUserMiddleware:
         response = self.get_response(request)
         
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                Profile.objects.filter(user=request.user).update(last_seen=now)
+                cache.set(cache_key, now, 300)
         
         return response
 
