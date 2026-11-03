@@ -1,8 +1,8 @@
-from django.utils import timezone
-from django.core.cache import cache
-from django.conf import settings  # ✅ ADD THIS IMPORT
-from .models import Profile
 import re
+from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
+from .models import Profile
 
 
 class ActiveUserMiddleware:
@@ -12,13 +12,17 @@ class ActiveUserMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Performance optimization:
+        # Previously executed a SELECT and full UPDATE on Profile for every single request
+        # made by an authenticated user. Throttling with django.core.cache (5 min / 300s)
+        # and using a direct queryset .update() avoids 2 unnecessary SQL queries per request
+        # during active sessions and reduces DB write pressure.
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'active_user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                Profile.objects.filter(user=request.user).update(last_seen=now)
+                cache.set(cache_key, True, 300)
         
         return response
 
