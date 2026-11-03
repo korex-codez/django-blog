@@ -1,3 +1,4 @@
+from django.db import models
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -69,6 +70,11 @@ class ModelTests(TestCase):
         self.assertEqual(self.post.total_likes(), 0)
         self.post.likes.add(self.user)
         self.assertEqual(self.post.total_likes(), 1)
+        # Verify total_likes uses precomputed like_count when annotated
+        annotated_post = Post.objects.filter(id=self.post.id).annotate(
+            like_count=models.Count('likes')
+        ).first()
+        self.assertEqual(annotated_post.total_likes(), 1)
 
     def test_post_total_comments(self):
         self.assertEqual(self.post.total_comments(), 1)
@@ -214,6 +220,26 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'blog/home.html')
         self.assertContains(response, 'Test Post')
+
+    def test_home_page_query_count_avoids_n_plus_one(self):
+        # Create additional published posts with categories and tags
+        for i in range(5):
+            p = Post.objects.create(
+                title=f'Post {i}',
+                content=f'Content {i}',
+                author=self.user,
+                category=self.category,
+                status='published',
+                featured=(i % 2 == 0)
+            )
+            p.tags.add(self.tag)
+            p.likes.add(self.user)
+
+        # Home view with select_related, prefetch_related and annotations
+        # should execute a fixed, low number of queries and avoid N+1 queries.
+        with self.assertNumQueries(6):
+            response = self.client.get(reverse('blog:home'))
+            self.assertEqual(response.status_code, 200)
 
     def test_post_detail_page(self):
         response = self.client.get(
