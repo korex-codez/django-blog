@@ -1,0 +1,3 @@
+## 2026-11-03 - Eliminating N+1 Query Cascades in Post List and Detail Cards
+**Learning:** In Django post list views (such as `home`), displaying post cards with category, author, tags, and like count causes an N+1 query storm (2 queries for category and author, 1 query per post for tags, and 1 `COUNT(*)` query per post for likes) scaling linearly with posts. Using `.select_related('category', 'author')`, `.prefetch_related('tags')`, and annotating `like_count=Count('likes')` while updating `Post.total_likes` to check `hasattr(self, 'like_count')` bounds database queries to a fixed constant.
+**Action:** Always check `hasattr(self, 'like_count')` in model count methods and eager load `select_related`/`prefetch_related` whenever rendering lists of post cards.

@@ -31,12 +31,18 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: Use select_related to eager load category and author for featured posts,
+    # preventing 2 queries per featured post in template rendering.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('category', 'author')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Optimization: Chain select_related for category and author, prefetch_related for tags,
+    # and annotate like_count to eliminate N+1 queries when displaying the post cards.
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('category', 'author').prefetch_related('tags').annotate(like_count=Count('likes'))
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
