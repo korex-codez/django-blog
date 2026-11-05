@@ -1,0 +1,3 @@
+## 2026-03-31 - N+1 Queries on Post Listing Cards
+**Learning:** Post cards on listings (`home.html`, `post_list.html`) access `post.author.username`, `post.category.name`, `post.tags.all`, and `post.total_likes` for every post. Without eager loading and count annotation, Django executes 4 additional SQL queries per post in the listing (plus another 2 per post in featured sections), resulting in 25-30+ queries per page load.
+**Action:** Chain `.select_related('category', 'author')`, `.prefetch_related('tags')`, and `.annotate(like_count=Count('likes'))` on post list querysets, and check `hasattr(self, 'like_count')` in `Post.total_likes()` to avoid redundant `likes.count()` database roundtrips.

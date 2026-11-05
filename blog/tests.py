@@ -229,6 +229,27 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'blog/home.html')
 
+    def test_post_listings_query_efficiency(self):
+        """Test that home view efficiently loads relations and like counts without N+1 queries"""
+        # Create additional posts with tags and likes to verify query efficiency
+        for i in range(5):
+            p = Post.objects.create(
+                title=f'Post {i}',
+                slug=f'post-{i}',
+                content=f'Content {i}',
+                excerpt=f'Excerpt {i}',
+                author=self.user,
+                category=self.category,
+                status='published',
+                featured=(i < 2)
+            )
+            p.tags.add(self.tag)
+            p.likes.add(self.user)
+
+        with self.assertNumQueries(7):
+            response = self.client.get(reverse('blog:home'))
+            self.assertEqual(response.status_code, 200)
+
     def test_about_page(self):
         response = self.client.get(reverse('blog:about'))
         self.assertEqual(response.status_code, 200)
