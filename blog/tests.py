@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
+from django.core.cache import cache
 from .models import Post, Category, Tag, Comment, Profile, Contact, Newsletter
 from .forms import PostForm, CommentForm, UserRegisterForm, ProfileForm
 
@@ -476,6 +477,7 @@ class MiddlewareTests(TestCase):
         )
 
     def test_active_user_middleware(self):
+        cache.clear()
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('blog:home'))
         self.assertEqual(response.status_code, 200)
@@ -483,6 +485,22 @@ class MiddlewareTests(TestCase):
         # Check if last_seen was updated
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
+        first_last_seen = user_profile.last_seen
+
+        # Verify cache key was set
+        cache_key = f'user_last_seen_{self.user.id}'
+        self.assertTrue(cache.get(cache_key))
+
+        # Subsequent request within throttle window should not update last_seen
+        response = self.client.get(reverse('blog:home'))
+        self.assertEqual(response.status_code, 200)
+        user_profile.refresh_from_db()
+        self.assertEqual(user_profile.last_seen, first_last_seen)
+
+    def test_active_user_middleware_unauthenticated(self):
+        cache.clear()
+        response = self.client.get(reverse('blog:home'))
+        self.assertEqual(response.status_code, 200)
 
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))

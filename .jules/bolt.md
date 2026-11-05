@@ -1,0 +1,3 @@
+## 2026-03-31 - Throttle per-request database updates in middleware
+**Learning:** In Django tracking middlewares (like `ActiveUserMiddleware` updating `Profile.last_seen`), querying and saving a model on every request incurs a `SELECT` and `UPDATE` SQL operation for each HTTP request an authenticated user makes. When high request volumes occur, this creates heavy write lock contention and significant database latency.
+**Action:** Throttle the update using `django.core.cache` (e.g. 300s TTL cache key) and execute a direct `QuerySet.filter(...).update(...)` instead of `get()` and `.save()`. This eliminates the `SELECT` query on cold runs and drops database operations to 0 queries on warm cache requests.
