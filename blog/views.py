@@ -31,12 +31,19 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Bolt performance optimization: use select_related on foreign keys (category, author),
+    # prefetch_related on M2M (tags), and annotate like_count to eliminate N+1 queries
+    # when rendering post cards in home.html.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('category', 'author')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('category', 'author').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    )
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +78,13 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Bolt performance optimization: eager-load relations and annotate like_count
+        # to prevent N+1 queries when rendering the list of post cards.
+        return Post.objects.filter(
+            status='published'
+        ).select_related('category', 'author').prefetch_related('tags').annotate(
+            like_count=Count('likes')
+        )
 
 
 def post_detail(request, slug):
