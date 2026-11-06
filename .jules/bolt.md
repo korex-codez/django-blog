@@ -1,0 +1,5 @@
+# Bolt's Performance Journal
+
+## 2026-03-30 - Eliminating N+1 Query Cascades in Post List Views
+**Learning:** In Django list views (such as the home page and post list view), iterating over posts and rendering author (`post.author.username`), category (`post.category.name`), tags (`post.tags.all`), and like counts (`post.total_likes`) results in an N+1 query explosion. For just 4 posts on a page, unoptimized views triggered 20-27 queries because foreign keys (`author`, `category`), many-to-many relationships (`tags`), and aggregate counts (`likes.count()`) fired separate queries per post card.
+**Action:** When querying `Post` models for list views or feeds, always chain `.select_related('category', 'author')`, `.prefetch_related('tags')`, and `.annotate(like_count=Count('likes'))`. Additionally, update `Post.total_likes()` to check `if hasattr(self, 'like_count'): return self.like_count` so the model method leverages pre-computed annotations before falling back to `self.likes.count()`.
