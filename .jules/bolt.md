@@ -1,0 +1,3 @@
+## 2026-11-07 - N+1 Queries from Post Cards in Template Loops
+**Learning:** Rendering post cards with category, author, tags, and like count causes an N+1 query storm for every post displayed (1 query per post for category, 1 for author, 1 for tags, and 1 for `post.total_likes()`). Furthermore, calling `.annotate(like_count=Count('likes'))` clears the model Meta default ordering, necessitating an explicit `.order_by('-created_at')` to keep pagination stable without warnings.
+**Action:** Always combine `.select_related('category', 'author')`, `.prefetch_related('tags')`, `.annotate(like_count=Count('likes'))`, and `.order_by('-created_at')` on `Post` list querysets, and check `hasattr(self, 'like_count')` in `Post.total_likes()`.

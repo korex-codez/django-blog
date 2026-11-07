@@ -31,12 +31,20 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
-    featured_posts = Post.objects.filter(
-        status='published',
+    # Optimization: Use select_related and prefetch_related with like_count annotation
+    # to avoid N+1 queries when accessing post.category, post.author, post.tags, and post.total_likes()
+    # Reduces query count from O(N) to O(1) constant queries on page load.
+    base_posts = Post.objects.filter(status='published').select_related(
+        'category', 'author'
+    ).prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
+
+    featured_posts = base_posts.filter(
         featured=True
     )[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = base_posts
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +79,13 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Optimization: Pre-fetch related relationships and annotate like counts
+        # to eliminate N+1 queries when rendering post cards.
+        return Post.objects.filter(status='published').select_related(
+            'category', 'author'
+        ).prefetch_related('tags').annotate(
+            like_count=Count('likes')
+        ).order_by('-created_at')
 
 
 def post_detail(request, slug):
