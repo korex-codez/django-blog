@@ -31,12 +31,21 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Bolt optimization: select_related('category', 'author') to avoid N+1 queries when accessing
+    # post.category and post.author in the featured posts section.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('category', 'author')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    # Bolt optimization: select_related('category', 'author'), prefetch_related('tags'),
+    # and annotate(like_count=Count('likes')) eliminate N+1 queries for category, author,
+    # tags, and like count across all rendered post cards.
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('category', 'author').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    )
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +80,13 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Bolt optimization: select_related('category', 'author'), prefetch_related('tags'),
+        # and annotate(like_count=Count('likes')) eliminate N+1 query cascade on list rendering.
+        return Post.objects.filter(
+            status='published'
+        ).select_related('category', 'author').prefetch_related('tags').annotate(
+            like_count=Count('likes')
+        )
 
 
 def post_detail(request, slug):
