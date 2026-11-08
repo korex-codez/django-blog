@@ -484,6 +484,27 @@ class MiddlewareTests(TestCase):
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
 
+    def test_active_user_middleware_throttled(self):
+        """Verify that ActiveUserMiddleware throttles database updates using cache"""
+        from django.core.cache import cache
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request sets the cache and updates last_seen
+        response1 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response1.status_code, 200)
+        self.assertTrue(cache.get(f'user_last_seen_{self.user.id}'))
+
+        # Second request hits the warm cache without triggering Profile UPDATE
+        user_profile = Profile.objects.get(user=self.user)
+        last_seen_initial = user_profile.last_seen
+
+        response2 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response2.status_code, 200)
+
+        user_profile.refresh_from_db()
+        self.assertEqual(user_profile.last_seen, last_seen_initial)
+
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
         self.assertIn('X-Content-Type-Options', response)
