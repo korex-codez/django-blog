@@ -1,0 +1,3 @@
+## 2026-11-09 - Throttle per-request database updates in middleware
+**Learning:** Tracking middleware like `ActiveUserMiddleware` executing `Profile.objects.get()` and `profile.save()` on every request adds 2 database queries (SELECT + full UPDATE) per authenticated request. Under high traffic, this causes unnecessary database write load and lock contention.
+**Action:** Throttle tracking updates by checking `cache.get(f'user_last_seen_{request.user.id}')` for a 5-minute (300s) timeout window, and execute direct SQL `Profile.objects.filter(user=request.user).update(last_seen=now)` to skip loading the model instance.
