@@ -31,12 +31,22 @@ from .forms import (
 
 def home(request):
     """Home page with featured posts, latest posts, categories, and tags"""
+    # Optimization: Use select_related, prefetch_related, and annotate(like_count=Count('likes'))
+    # to eliminate N+1 queries when accessing category, author, tags, and total_likes in templates.
+    # Note: Explicit order_by('-created_at') prevents UnorderedObjectListWarning since annotate clears default ordering.
     featured_posts = Post.objects.filter(
         status='published',
         featured=True
-    )[:3]
+    ).select_related('category', 'author').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')[:3]
     
-    posts_list = Post.objects.filter(status='published')
+    posts_list = Post.objects.filter(
+        status='published'
+    ).select_related('category', 'author').prefetch_related('tags').annotate(
+        like_count=Count('likes')
+    ).order_by('-created_at')
+
     paginator = Paginator(posts_list, 6)
     page = request.GET.get('page')
     try:
@@ -71,7 +81,13 @@ class PostListView(ListView):
     paginate_by = 6
 
     def get_queryset(self):
-        return Post.objects.filter(status='published')
+        # Optimization: Preload related author, category, tags, and annotate like_count
+        # to eliminate N+1 queries during list rendering.
+        return Post.objects.filter(
+            status='published'
+        ).select_related('category', 'author').prefetch_related('tags').annotate(
+            like_count=Count('likes')
+        ).order_by('-created_at')
 
 
 def post_detail(request, slug):
