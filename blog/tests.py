@@ -500,3 +500,48 @@ class SignalTests(TestCase):
             password='testpass123'
         )
         self.assertTrue(Profile.objects.filter(user=user).exists())
+
+
+class HomeOptimizationTests(TestCase):
+    """Test performance optimization and query count on home view"""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='author1',
+            password='testpass123'
+        )
+        self.category = Category.objects.create(name='Tech', slug='tech')
+        self.tag1 = Tag.objects.create(name='Python', slug='python')
+        self.tag2 = Tag.objects.create(name='Django', slug='django')
+
+        for i in range(5):
+            post = Post.objects.create(
+                title=f'Test Post {i}',
+                slug=f'test-post-{i}',
+                content=f'Content {i}',
+                excerpt=f'Excerpt {i}',
+                author=self.user,
+                category=self.category,
+                status='published',
+                featured=(i == 0)
+            )
+            post.tags.add(self.tag1, self.tag2)
+            post.likes.add(self.user)
+
+    def test_total_likes_uses_annotated_count(self):
+        """Verify total_likes() uses like_count if present, else falls back to db query"""
+        from django.db.models import Count
+        annotated_post = Post.objects.annotate(like_count=Count('likes')).first()
+        self.assertTrue(hasattr(annotated_post, 'like_count'))
+        self.assertEqual(annotated_post.total_likes(), 1)
+
+        raw_post = Post.objects.first()
+        self.assertFalse(hasattr(raw_post, 'like_count'))
+        self.assertEqual(raw_post.total_likes(), 1)
+
+    def test_home_page_query_efficiency(self):
+        """Home page should avoid N+1 queries for author, category, tags, and likes"""
+        with self.assertNumQueries(6):
+            response = self.client.get(reverse('blog:home'))
+            self.assertEqual(response.status_code, 200)
