@@ -12,13 +12,17 @@ class ActiveUserMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Performance optimization:
+        # Previously executed a SELECT and full-row UPDATE on Profile on EVERY request
+        # by an authenticated user.
+        # Now throttled using cache (5-minute TTL) and direct QuerySet.update() to avoid
+        # 2 database roundtrips per request for active sessions.
         if request.user.is_authenticated:
-            try:
-                profile = Profile.objects.get(user=request.user)
-                profile.last_seen = timezone.now()
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
+            cache_key = f'user_last_seen_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                Profile.objects.filter(user=request.user).update(last_seen=now)
+                cache.set(cache_key, True, 300)
         
         return response
 
