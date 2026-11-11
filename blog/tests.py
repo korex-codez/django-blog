@@ -476,6 +476,8 @@ class MiddlewareTests(TestCase):
         )
 
     def test_active_user_middleware(self):
+        from django.core.cache import cache
+        cache.clear()
         self.client.login(username='testuser', password='testpass123')
         response = self.client.get(reverse('blog:home'))
         self.assertEqual(response.status_code, 200)
@@ -483,6 +485,26 @@ class MiddlewareTests(TestCase):
         # Check if last_seen was updated
         user_profile = Profile.objects.get(user=self.user)
         self.assertIsNotNone(user_profile.last_seen)
+
+    def test_active_user_middleware_throttled(self):
+        """Test that ActiveUserMiddleware throttles database updates using cache"""
+        from django.core.cache import cache
+        from django.db import connection
+        from unittest.mock import patch
+
+        cache.clear()
+        self.client.login(username='testuser', password='testpass123')
+
+        # First request should populate cache
+        response1 = self.client.get(reverse('blog:home'))
+        self.assertEqual(response1.status_code, 200)
+        self.assertTrue(cache.get(f'user_last_seen_{self.user.id}'))
+
+        # Subsequent requests within cache window should not call Profile.objects.filter().update()
+        with patch.object(Profile.objects, 'filter', wraps=Profile.objects.filter) as mock_filter:
+            response2 = self.client.get(reverse('blog:home'))
+            self.assertEqual(response2.status_code, 200)
+            mock_filter.assert_not_called()
 
     def test_security_headers(self):
         response = self.client.get(reverse('blog:home'))
